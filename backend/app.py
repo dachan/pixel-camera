@@ -21,7 +21,31 @@ from flask_cors import CORS
 from camera import get_camera
 
 BACKEND_DIR = os.path.dirname(os.path.abspath(__file__))
-FRONTEND_OUT = os.path.normpath(os.path.join(BACKEND_DIR, "..", "frontend", "out"))
+
+
+def _find_frontend_out():
+    """Locate frontend/out across both layouts.
+
+    Mac dev: app.py is in pi-xel/backend/, frontend is a sibling
+        -> ../frontend/out
+    Pi deploy: backend/* is flattened into ~/ir-cam/, frontend/out is a child
+        -> ./frontend/out
+    An explicit FRONTEND_OUT env var overrides both.
+    """
+    override = os.environ.get("FRONTEND_OUT")
+    if override:
+        return os.path.normpath(override)
+    candidates = (
+        os.path.join(BACKEND_DIR, "frontend", "out"),                       # Pi
+        os.path.normpath(os.path.join(BACKEND_DIR, "..", "frontend", "out")),  # Mac dev
+    )
+    for candidate in candidates:
+        if os.path.isdir(candidate):
+            return candidate
+    return candidates[0]
+
+
+FRONTEND_OUT = _find_frontend_out()
 CAPTURES_DIR = os.path.join(BACKEND_DIR, "captures")
 
 app = Flask(__name__, static_folder=None)
