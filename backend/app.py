@@ -59,6 +59,24 @@ def preview():
     )
 
 
+@app.route("/api/camera/info")
+def camera_info():
+    """Static camera info: properties + adjustable controls (min/max/default)."""
+    try:
+        return jsonify(camera.info())
+    except Exception as exc:  # surface a clean error instead of a 500 stack
+        return jsonify(error=str(exc)), 503
+
+
+@app.route("/api/camera/metadata")
+def camera_metadata():
+    """Live per-frame metadata snapshot (exposure, gain, lux, temp, ...)."""
+    try:
+        return jsonify(camera.metadata())
+    except Exception as exc:
+        return jsonify(error=str(exc)), 503
+
+
 @app.route("/api/capture", methods=["POST"])
 def capture():
     os.makedirs(CAPTURES_DIR, exist_ok=True)

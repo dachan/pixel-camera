@@ -23,6 +23,31 @@ import time
 from datetime import datetime
 
 
+def _jsonable(value):
+    """Recursively coerce camera data into JSON-serializable primitives.
+
+    libcamera/picamera2 return tuples, numpy scalars, enums and the like; this
+    flattens them so they can go straight out as JSON. Unknown types fall back
+    to ``str()`` rather than raising.
+    """
+    if value is None or isinstance(value, (bool, int, float, str)):
+        return value
+    if isinstance(value, dict):
+        return {str(k): _jsonable(v) for k, v in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [_jsonable(v) for v in value]
+    # numpy scalars expose .item(); enums expose .value.
+    item = getattr(value, "item", None)
+    if callable(item):
+        try:
+            return _jsonable(item())
+        except Exception:
+            pass
+    if hasattr(value, "value") and not callable(value.value):
+        return _jsonable(value.value)
+    return str(value)
+
+
 class BaseCamera(abc.ABC):
     """Interface shared by the mock and real cameras."""
 
@@ -34,6 +59,20 @@ class BaseCamera(abc.ABC):
     @abc.abstractmethod
     def capture(self, path: str) -> None:
         """Capture a single still and write it to ``path`` as JPEG."""
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def info(self) -> dict:
+        """Return static camera info: ``{"properties": {...}, "controls": {...}}``.
+
+        ``controls`` maps each adjustable control name to
+        ``{"min": ..., "max": ..., "default": ...}``.
+        """
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def metadata(self) -> dict:
+        """Return the current per-frame metadata as a flat dict."""
         raise NotImplementedError
 
 
@@ -82,6 +121,54 @@ class MockCamera(BaseCamera):
     def capture(self, path: str) -> None:
         with open(path, "wb") as f:
             f.write(self._render_frame())
+
+    def info(self) -> dict:
+        # A representative slice of what a real Pi sensor reports, so the UI can
+        # be built and verified on the Mac without hardware.
+        return {
+            "properties": {
+                "Model": "mock-imx-sim",
+                "PixelArraySize": [self.WIDTH, self.HEIGHT],
+                "PixelArrayActiveAreas": [[0, 0, self.WIDTH, self.HEIGHT]],
+                "ColorFilterArrangement": "RGGB",
+                "Rotation": 0,
+                "Location": 2,
+                "ScalerCropMaximum": [0, 0, self.WIDTH, self.HEIGHT],
+                "SystemDevices": ["/dev/mock-video0"],
+            },
+            "controls": {
+                "ExposureTime": {"min": 14, "max": 11767556, "default": None},
+                "AnalogueGain": {"min": 1.0, "max": 16.0, "default": None},
+                "ExposureValue": {"min": -8.0, "max": 8.0, "default": 0.0},
+                "Brightness": {"min": -1.0, "max": 1.0, "default": 0.0},
+                "Contrast": {"min": 0.0, "max": 32.0, "default": 1.0},
+                "Saturation": {"min": 0.0, "max": 32.0, "default": 1.0},
+                "Sharpness": {"min": 0.0, "max": 16.0, "default": 1.0},
+                "AeEnable": {"min": False, "max": True, "default": True},
+                "AwbEnable": {"min": False, "max": True, "default": True},
+                "FrameDurationLimits": {"min": 33333, "max": 120000, "default": None},
+            },
+        }
+
+    def metadata(self) -> dict:
+        # Live values: a few oscillate with time so the UI visibly updates.
+        t = time.time()
+        wobble = math.sin(t * 0.7) * 0.5 + 0.5  # 0..1
+        return _jsonable(
+            {
+                "ExposureTime": int(8000 + wobble * 12000),
+                "AnalogueGain": round(1.0 + wobble * 3.0, 3),
+                "DigitalGain": 1.0,
+                "Lux": round(120 + wobble * 380, 1),
+                "ColourTemperature": int(4200 + wobble * 1600),
+                "ColourGains": [round(1.4 + wobble * 0.6, 3), round(2.6 - wobble * 0.4, 3)],
+                "FocusFoM": int(2000 + wobble * 4000),
+                "FrameDuration": 33333,
+                "SensorTemperature": round(38.0 + wobble * 4.0, 1),
+                "SensorTimestamp": int(t * 1e9),
+                "AeLocked": wobble > 0.5,
+            }
+        )
 
 
 class RealCamera(BaseCamera):
@@ -139,6 +226,27 @@ class RealCamera(BaseCamera):
             request.save("main", path)
         finally:
             request.release()
+
+    def info(self) -> dict:
+        # camera_controls maps name -> (min, max, default).
+        controls = {}
+        for name, vals in self._picam2.camera_controls.items():
+            try:
+                cmin, cmax, cdefault = vals
+            except (TypeError, ValueError):
+                cmin = cmax = cdefault = None
+            controls[str(name)] = {
+                "min": _jsonable(cmin),
+                "max": _jsonable(cmax),
+                "default": _jsonable(cdefault),
+            }
+        return {
+            "properties": _jsonable(dict(self._picam2.camera_properties)),
+            "controls": controls,
+        }
+
+    def metadata(self) -> dict:
+        return _jsonable(dict(self._picam2.capture_metadata()))
 
 
 def get_camera() -> BaseCamera:

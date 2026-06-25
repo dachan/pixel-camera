@@ -15,3 +15,30 @@ export async function capture(): Promise<{ filename: string }> {
   if (!res.ok) throw new Error(`capture failed: ${res.status}`);
   return res.json();
 }
+
+// --- Camera metadata --------------------------------------------------------
+
+export type ControlRange = {
+  min: number | boolean | null;
+  max: number | boolean | null;
+  default: number | boolean | null;
+};
+
+export type CameraInfo = {
+  properties: Record<string, unknown>;
+  controls: Record<string, ControlRange>;
+};
+
+export type CameraMetadata = Record<string, unknown>;
+
+export async function cameraInfo(): Promise<CameraInfo> {
+  const res = await fetch(`${BASE}/api/camera/info`);
+  if (!res.ok) throw new Error(`camera info failed: ${res.status}`);
+  return res.json();
+}
+
+export async function cameraMetadata(): Promise<CameraMetadata> {
+  const res = await fetch(`${BASE}/api/camera/metadata`);
+  if (!res.ok) throw new Error(`camera metadata failed: ${res.status}`);
+  return res.json();
+}

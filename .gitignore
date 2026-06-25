@@ -12,3 +12,4 @@ node_modules
 
 # Env
 .env.local
+.DS_Store
