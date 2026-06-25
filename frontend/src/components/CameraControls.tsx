@@ -1,6 +1,11 @@
 "use client";
 
-import { useEffect, useState, type InputHTMLAttributes } from "react";
+import {
+  useEffect,
+  useState,
+  type InputHTMLAttributes,
+  type ReactNode,
+} from "react";
 import {
   capture,
   getControls,
@@ -39,7 +44,7 @@ function nearestShutterIndex(us: number): number {
 }
 
 const VERTICAL_SLIDER_CLASS = [
-  "h-full w-12 min-h-0 cursor-pointer appearance-none bg-transparent",
+  "w-12 min-h-0 cursor-pointer appearance-none bg-transparent",
   "[writing-mode:vertical-lr] [direction:rtl]",
   "disabled:cursor-not-allowed disabled:opacity-40",
   "[&::-webkit-slider-runnable-track]:h-full [&::-webkit-slider-runnable-track]:w-1.5 [&::-webkit-slider-runnable-track]:rounded-full [&::-webkit-slider-runnable-track]:bg-zinc-700",
@@ -56,15 +61,42 @@ function VerticalSlider(props: InputHTMLAttributes<HTMLInputElement>) {
     <input
       {...rest}
       type="range"
-      className={[VERTICAL_SLIDER_CLASS, className].filter(Boolean).join(" ")}
+      className={[VERTICAL_SLIDER_CLASS, "block flex-1 self-stretch", className]
+        .filter(Boolean)
+        .join(" ")}
       {...({ orient: "vertical" } as InputHTMLAttributes<HTMLInputElement>)}
     />
   );
 }
 
+type SliderControlProps = {
+  label: string;
+  value: ReactNode;
+  children: ReactNode;
+};
+
+function SliderControl({ label, value, children }: SliderControlProps) {
+  return (
+    <label className="flex h-full w-full min-w-0 flex-col items-center gap-4">
+      <div className="flex w-full min-w-0 flex-col items-center gap-0.5">
+        <span className="w-full truncate text-sm text-center font-bold text-zinc-500">
+          {label}
+        </span>
+        <span className="font-mono text-xs text-zinc-300">{value}</span>
+      </div>
+      <div className="flex h-full min-h-0 w-full justify-center">
+        {children}
+      </div>
+    </label>
+  );
+}
+
 export default function CameraControls() {
-  const [state, setState] = useState<CameraControlsState | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [state, setState] = useState<CameraControlsState>({
+    auto_exposure: false,
+    iso: 100,
+    shutter_us: 10000,
+  });
   const [captureBusy, setCaptureBusy] = useState(false);
   const [lastFile, setLastFile] = useState<string | null>(null);
   const [captureError, setCaptureError] = useState<string | null>(null);
@@ -81,7 +113,7 @@ export default function CameraControls() {
           : Promise.resolve(s)
       )
       .then(setState)
-      .catch((e) => setError(e instanceof Error ? e.message : String(e)));
+      .catch(() => {});
   }, []);
 
   // In auto mode, poll so sliders reflect live AE values.
@@ -98,10 +130,10 @@ export default function CameraControls() {
 
   // Push a change to the backend and adopt the returned (authoritative) state.
   function apply(patch: Partial<CameraControlsState>) {
-    setState((prev) => (prev ? { ...prev, ...patch } : prev)); // optimistic
+    setState((prev) => ({ ...prev, ...patch })); // optimistic
     setControls(patch)
       .then(setState)
-      .catch((e) => setError(e instanceof Error ? e.message : String(e)));
+      .catch(() => {});
   }
 
   async function onCapture() {
@@ -117,21 +149,6 @@ export default function CameraControls() {
     }
   }
 
-  if (error) {
-    return (
-      <section className="absolute inset-0 flex items-center justify-center rounded-lg border border-zinc-800 bg-zinc-900/50 p-4">
-        <p className="text-sm text-red-500">Controls unavailable: {error}</p>
-      </section>
-    );
-  }
-  if (!state) {
-    return (
-      <section className="absolute inset-0 flex items-center justify-center rounded-lg border border-zinc-800 bg-zinc-900/50 p-4">
-        <p className="text-sm text-zinc-500">Loading controls…</p>
-      </section>
-    );
-  }
-
   const manual = !state.auto_exposure;
   const isoSliderValue = Math.min(
     1600,
@@ -140,7 +157,7 @@ export default function CameraControls() {
   const shutterIdx = nearestShutterIndex(state.shutter_us);
 
   return (
-    <section className="absolute inset-0 flex select-none flex-col gap-4 rounded-lg">
+    <section className="flex flex-col gap-4 h-full">
       <div className="flex shrink-0 items-center justify-center">
         <Tabs
           tabs={EXPOSURE_TABS}
@@ -149,57 +166,34 @@ export default function CameraControls() {
         />
       </div>
 
-      <div className="grid min-h-0 flex-1 grid-cols-3 grid-rows-[minmax(0,1fr)] items-stretch">
-        {/* ISO */}
-        <label className="flex h-full min-h-0 flex-col items-center gap-4 overflow-hidden">
-          <div className="flex flex-col items-center gap-0.5">
-            <span className="text-zinc-300 font-bold">ISO</span>
-            <span className="font-mono text-xs text-zinc-300">{state.iso}</span>
-          </div>
-          <div className="flex h-full min-h-0 w-full justify-center">
-            <VerticalSlider
-              min={100}
-              max={1600}
-              step={100}
-              value={isoSliderValue}
-              disabled={!manual}
-              onChange={(e) => apply({ iso: Number(e.target.value) })}
-            />
-          </div>
-        </label>
+      <div className="flex justify-around h-full overflow-hidden gap-2">
+        <SliderControl label="Shutter" value={shutterLabel(state.shutter_us)}>
+          <VerticalSlider
+            min={0}
+            max={SHUTTER_STEPS.length - 1}
+            step={1}
+            value={shutterIdx}
+            disabled={!manual}
+            onChange={(e) =>
+              apply({ shutter_us: SHUTTER_STEPS[Number(e.target.value)] })
+            }
+          />
+        </SliderControl>
 
-        {/* Shutter */}
-        <label className="flex h-full min-h-0 flex-col items-center gap-4 overflow-hidden">
-          <div className="flex flex-col items-center gap-0.5">
-            <span className="text-zinc-300 font-bold">Shutter</span>
-            <span className="font-mono text-xs text-zinc-300">
-              {shutterLabel(state.shutter_us)}
-            </span>
-          </div>
-          <div className="flex h-full min-h-0 w-full justify-center">
-            <VerticalSlider
-              min={0}
-              max={SHUTTER_STEPS.length - 1}
-              step={1}
-              value={shutterIdx}
-              disabled={!manual}
-              onChange={(e) =>
-                apply({ shutter_us: SHUTTER_STEPS[Number(e.target.value)] })
-              }
-            />
-          </div>
-        </label>
+        <SliderControl label="ISO" value={state.iso}>
+          <VerticalSlider
+            min={100}
+            max={1600}
+            step={100}
+            value={isoSliderValue}
+            disabled={!manual}
+            onChange={(e) => apply({ iso: Number(e.target.value) })}
+          />
+        </SliderControl>
 
-        {/* Aperture — not controllable on Pi cameras */}
-        <label className="flex h-full min-h-0 flex-col items-center gap-4 overflow-hidden opacity-60">
-          <div className="flex flex-col items-center gap-0.5">
-            <span className="text-zinc-300 font-bold">Aperture</span>
-            <span className="font-mono text-xs text-zinc-300">fixed</span>
-          </div>
-          <div className="flex h-full min-h-0 w-full justify-center">
-            <VerticalSlider disabled value={0} readOnly />
-          </div>
-        </label>
+        <SliderControl label="Aperture" value="Fixed">
+          <VerticalSlider disabled value={0} readOnly />
+        </SliderControl>
       </div>
 
       <button

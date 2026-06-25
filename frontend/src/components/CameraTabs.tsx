@@ -22,20 +22,18 @@ export default function CameraTabs() {
     <div className="flex w-full flex-1 flex-col gap-3 overflow-hidden">
       <Tabs tabs={TABS} active={active} onChange={setActive} />
 
-      <div className="min-h-0 flex-1 w-full overflow-hidden">
+      <div className="min-h-0 flex-1 w-full">
         {active === "camera" ? (
-          <div className="grid h-full min-h-0 w-full grid-cols-[minmax(0,1fr)_18rem] gap-4">
-            <div className="min-h-0 h-full">
+          <div className="flex gap-4 w-full h-full">
+            <div className="w-2/3 flex items-center justify-center">
               <CameraPreview />
             </div>
-            <div className="relative min-h-0 h-full">
+            <div className="w-1/3">
               <CameraControls />
             </div>
           </div>
         ) : active === "meta" ? (
-          <div className="h-full min-h-0 text-sm">
-            <CameraMeta />
-          </div>
+          <CameraMeta />
         ) : (
           <CaptureGallery />
         )}

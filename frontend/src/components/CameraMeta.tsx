@@ -21,10 +21,10 @@ function fmt(value: unknown): string {
 }
 
 const PANEL_CLASS =
-  "min-h-0 flex-1 overflow-y-auto rounded-lg border border-zinc-800 bg-zinc-900/50 text-sm";
+  "flex-1 rounded-lg border border-zinc-800 bg-zinc-900/50 text-sm";
 
 const HEADING_CLASS =
-  "sticky top-0 z-10 bg-zinc-900/95 px-4 pt-4 pb-2 font-semibold text-zinc-100 backdrop-blur-sm";
+  "top-0 z-10 bg-zinc-900/95 px-4 pt-4 pb-2 font-semibold text-zinc-100 backdrop-blur-sm";
 
 export default function CameraMeta() {
   const [info, setInfo] = useState<CameraInfo | null>(null);
@@ -60,54 +60,63 @@ export default function CameraMeta() {
   }
 
   return (
-    <div className="flex h-full min-h-0 w-full flex-col gap-4 overflow-y-auto md:flex-row md:overflow-hidden">
+    <div className="flex h-full min-h-0 w-full flex-col gap-4 overflow-y-auto">
       <section className={PANEL_CLASS}>
         <h2 className={`${HEADING_CLASS} flex items-center gap-2`}>
           <span className="h-2 w-2 animate-pulse rounded-full bg-green-500" />
           Live Metadata
         </h2>
         <dl className="space-y-1 px-4 pb-4">
-          {meta
-            ? Object.entries(meta).map(([k, v]) => (
-                <div key={k} className="flex justify-between gap-3">
-                  <dt className="text-zinc-400">{k}</dt>
-                  <dd className="font-mono text-zinc-100">{fmt(v)}</dd>
-                </div>
-              ))
-            : <p className="text-zinc-500">waiting…</p>}
+          {meta ? (
+            Object.entries(meta).map(([k, v]) => (
+              <div key={k} className="flex justify-between gap-3">
+                <dt className="text-zinc-400">{k}</dt>
+                <dd className="font-mono text-zinc-100">{fmt(v)}</dd>
+              </div>
+            ))
+          ) : (
+            <p className="text-zinc-500">waiting…</p>
+          )}
         </dl>
       </section>
 
       <section className={PANEL_CLASS}>
         <h2 className={HEADING_CLASS}>Controls (range)</h2>
         <dl className="space-y-1 px-4 pb-4">
-          {info
-            ? Object.entries(info.controls).map(([k, r]) => (
-                <div key={k} className="flex justify-between gap-3">
-                  <dt className="text-zinc-400">{k}</dt>
-                  <dd className="font-mono text-zinc-100">
-                    {fmt(r.min)} … {fmt(r.max)}
-                    {r.default !== null && (
-                      <span className="text-zinc-500"> (def {fmt(r.default)})</span>
-                    )}
-                  </dd>
-                </div>
-              ))
-            : <p className="text-zinc-500">loading…</p>}
+          {info ? (
+            Object.entries(info.controls).map(([k, r]) => (
+              <div key={k} className="flex justify-between gap-3">
+                <dt className="text-zinc-400">{k}</dt>
+                <dd className="font-mono text-zinc-100">
+                  {fmt(r.min)} … {fmt(r.max)}
+                  {r.default !== null && (
+                    <span className="text-zinc-500">
+                      {" "}
+                      (def {fmt(r.default)})
+                    </span>
+                  )}
+                </dd>
+              </div>
+            ))
+          ) : (
+            <p className="text-zinc-500">loading…</p>
+          )}
         </dl>
       </section>
 
       <section className={PANEL_CLASS}>
         <h2 className={HEADING_CLASS}>Properties</h2>
         <dl className="space-y-1 px-4 pb-4">
-          {info
-            ? Object.entries(info.properties).map(([k, v]) => (
-                <div key={k} className="flex justify-between gap-3">
-                  <dt className="text-zinc-400">{k}</dt>
-                  <dd className="font-mono text-zinc-100">{fmt(v)}</dd>
-                </div>
-              ))
-            : <p className="text-zinc-500">loading…</p>}
+          {info ? (
+            Object.entries(info.properties).map(([k, v]) => (
+              <div key={k} className="flex justify-between gap-3">
+                <dt className="text-zinc-400">{k}</dt>
+                <dd className="font-mono text-zinc-100">{fmt(v)}</dd>
+              </div>
+            ))
+          ) : (
+            <p className="text-zinc-500">loading…</p>
+          )}
         </dl>
       </section>
     </div>

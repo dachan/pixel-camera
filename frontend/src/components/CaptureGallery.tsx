@@ -53,11 +53,10 @@ export default function CaptureGallery() {
             key={filename}
             className="overflow-hidden rounded-lg border border-zinc-800 bg-zinc-900/50"
           >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={captureUrl(filename)}
               alt={filename}
-              className="aspect-video w-full object-cover"
+              className="aspect-video w-full object-cover select-none"
             />
             <figcaption className="truncate px-2 py-1.5 font-mono text-xs text-zinc-400">
               {filename}
