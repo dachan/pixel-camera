@@ -20,7 +20,7 @@ pi-xel/
 │       ├── components/CaptureView.tsx
 │       └── app/page.tsx
 ├── scripts/deploy.sh        # Mac → Pi deploy
-├── deploy/
+├── _deploy/
 │   ├── ircam-api.service    # systemd unit (CAMERA=real)
 │   └── kiosk.sh             # Chromium kiosk launcher
 ├── requirements.txt         # flask, flask-cors, Pillow  (NOT picamera2)
@@ -106,21 +106,30 @@ python3 -m venv --system-site-packages .venv
 
 ### systemd API service
 
-After the first deploy has placed files in `~/ir-cam/`:
+`scripts/deploy.sh` **installs and enables the service automatically** the first
+time it runs (and restarts it on every deploy after). So normally you don't need
+to do anything here — just verify after a deploy:
+
+```bash
+systemctl status ircam-api.service          # should be active (running)
+curl -s localhost:5000/api/health           # {"status":"ok"}
+```
+
+This relies on the deploy user having passwordless `sudo` (the Raspberry Pi OS
+default for the setup user). If `sudo` prompts for a password, install it
+manually once instead:
 
 ```bash
 sudo cp ~/ir-cam/ircam-api.service /etc/systemd/system/ircam-api.service
 sudo systemctl daemon-reload
 sudo systemctl enable --now ircam-api.service
-systemctl status ircam-api.service          # should be active (running)
-curl -s localhost:5000/api/health           # {"status":"ok"}
 ```
 
 ### Kiosk autostart (labwc)
 
 ```bash
 # Copy the launcher to home and make it executable
-cp ~/ir-cam/kiosk.sh ~/kiosk.sh   # (or copy from the repo's deploy/kiosk.sh)
+cp ~/ir-cam/kiosk.sh ~/kiosk.sh   # (or copy from the repo's _deploy/kiosk.sh)
 chmod +x ~/kiosk.sh
 
 # Reference it from the labwc autostart, respawned if it exits
@@ -129,7 +138,7 @@ echo '/usr/bin/lwrespawn /home/dachan/kiosk.sh' >> ~/.config/labwc/autostart
 ```
 
 > Note: `deploy.sh` syncs `backend/` and `frontend/out/` but not `kiosk.sh`.
-> Copy `deploy/kiosk.sh` to `~/kiosk.sh` on the Pi yourself (it rarely changes).
+> Copy `_deploy/kiosk.sh` to `~/kiosk.sh` on the Pi yourself (it rarely changes).
 
 ### Autologin to desktop
 

@@ -23,7 +23,9 @@ echo "==> [1/3] Building frontend static export (relative /api)"
 NEXT_PUBLIC_API_BASE= npm --prefix frontend run build
 
 echo "==> [2/3] Syncing to ${PI_TARGET}:${PI_DIR}"
-ssh "${PI_TARGET}" "mkdir -p ${PI_DIR}"
+# Create the target dir tree up front (openrsync on macOS can't --mkpath, and
+# rsync won't create missing parent dirs of a destination path).
+ssh "${PI_TARGET}" "mkdir -p ${PI_DIR}/frontend/out"
 
 # Backend source (exclude venv, captures, caches).
 rsync -az --delete \
@@ -38,7 +40,7 @@ rsync -az --delete \
 
 # requirements + systemd unit (handy to keep in sync).
 rsync -az requirements.txt "${PI_TARGET}:${PI_DIR}/requirements.txt"
-rsync -az deploy/ircam-api.service "${PI_TARGET}:${PI_DIR}/ircam-api.service"
+rsync -az _deploy/ircam-api.service "${PI_TARGET}:${PI_DIR}/ircam-api.service"
 
 echo "==> [3/3] Installing deps, restarting service, relaunching kiosk"
 ssh "${PI_TARGET}" bash -s <<EOF
@@ -50,6 +52,12 @@ if [ ! -d .venv ]; then
 fi
 .venv/bin/pip install --quiet --upgrade pip
 .venv/bin/pip install --quiet -r requirements.txt
+# Install + enable the systemd unit on first deploy; restart on subsequent ones.
+if ! systemctl list-unit-files | grep -q '^ircam-api.service'; then
+  sudo cp "${PI_DIR}/ircam-api.service" /etc/systemd/system/ircam-api.service
+  sudo systemctl daemon-reload
+  sudo systemctl enable ircam-api.service
+fi
 sudo systemctl restart ircam-api.service
 # Relaunch the kiosk so it picks up the new frontend (lwrespawn restarts it).
 pkill -f chromium || true
