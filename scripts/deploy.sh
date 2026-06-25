@@ -27,11 +27,14 @@ echo "==> [2/3] Syncing to ${PI_TARGET}:${PI_DIR}"
 # rsync won't create missing parent dirs of a destination path).
 ssh "${PI_TARGET}" "mkdir -p ${PI_DIR}/frontend/out"
 
-# Backend source (exclude venv, captures, caches).
+# Backend source (exclude venv, captures, caches). Exclude 'frontend' so the
+# --delete here does NOT wipe the frontend/out tree synced below (backend/ has
+# no frontend dir, so without this --delete would remove it).
 rsync -az --delete \
   --exclude '.venv' \
   --exclude 'captures' \
   --exclude '__pycache__' \
+  --exclude 'frontend' \
   backend/ "${PI_TARGET}:${PI_DIR}/"
 
 # Static frontend export.

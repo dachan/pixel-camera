@@ -10,12 +10,6 @@ export function previewUrl(): string {
   return `${BASE}/api/preview`;
 }
 
-export async function health(): Promise<{ status: string }> {
-  const res = await fetch(`${BASE}/api/health`);
-  if (!res.ok) throw new Error(`health failed: ${res.status}`);
-  return res.json();
-}
-
 export async function capture(): Promise<{ filename: string }> {
   const res = await fetch(`${BASE}/api/capture`, { method: "POST" });
   if (!res.ok) throw new Error(`capture failed: ${res.status}`);
