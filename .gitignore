@@ -12,4 +12,5 @@ node_modules
 
 # Env
 .env.local
+deploy.env
 .DS_Store
