@@ -72,7 +72,8 @@ curl -s -X POST localhost:5000/api/capture  # {"filename":"capture-...jpg"}
 One-time, from the Mac:
 
 ```bash
-ssh-copy-id dachan@pixel.local   # passwordless SSH for deploys
+cp deploy.env.example deploy.env   # then edit it for your Pi (gitignored)
+ssh-copy-id pi@raspberrypi.local   # passwordless SSH for deploys
 ```
 
 Then deploy anytime:
@@ -82,11 +83,14 @@ Then deploy anytime:
 ```
 
 This builds the static export with an **empty** API base (relative `/api`),
-rsyncs `backend/` + `frontend/out/` to `dachan@pixel.local:~/ir-cam/`, installs
+rsyncs `backend/` + `frontend/out/` to the Pi (`~/ir-cam/` by default), installs
 deps in the Pi venv, restarts the API service, and relaunches the kiosk.
 
-Host/user/path are variables at the top of `scripts/deploy.sh` — change them
-there if your Pi differs.
+Host/user/path come from `deploy.env` (copy `deploy.env.example` to `deploy.env`
+and edit it — it's gitignored), or from matching environment variables. Defaults
+target a stock Raspberry Pi OS setup (`pi@raspberrypi.local`). The systemd unit
+is rendered from `_deploy/ircam-api.service.tpl` using the same values, so the
+deployed service always matches your config.
 
 ## Pi setup (run on the Pi, once)
 
@@ -134,7 +138,7 @@ chmod +x ~/kiosk.sh
 
 # Reference it from the labwc autostart, respawned if it exits
 mkdir -p ~/.config/labwc
-echo '/usr/bin/lwrespawn /home/dachan/kiosk.sh' >> ~/.config/labwc/autostart
+echo "/usr/bin/lwrespawn $HOME/kiosk.sh" >> ~/.config/labwc/autostart
 ```
 
 > Note: `deploy.sh` syncs `backend/` and `frontend/out/` but not `kiosk.sh`.
@@ -173,3 +177,7 @@ This only affects Mac dev. The Pi has no such conflict.
   (Pi), both gitignored.
 - The home page UI is intentionally minimal (preview + capture) — build the real
   UI on top of `CaptureView`.
+
+## License
+
+[MIT](LICENSE) © David Chan

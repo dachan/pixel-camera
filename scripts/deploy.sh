@@ -9,15 +9,19 @@
 # Auth: SSH keys (passwordless). Run `ssh-copy-id ${PI_HOST}` once beforehand.
 set -euo pipefail
 
-# --- Config (edit here if host/user/path change) ---------------------------
-PI_USER="dachan"
-PI_HOST="pixel.local"
-PI_TARGET="${PI_USER}@${PI_HOST}"
-PI_DIR="/home/${PI_USER}/ir-cam"
-# ---------------------------------------------------------------------------
-
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "${ROOT}"
+
+# --- Config ----------------------------------------------------------------
+# Copy deploy.env.example -> deploy.env and edit it for your Pi (gitignored).
+# Values can also be overridden via the environment. Defaults target a stock
+# Raspberry Pi OS setup.
+[ -f "${ROOT}/deploy.env" ] && source "${ROOT}/deploy.env"
+PI_USER="${PI_USER:-pi}"
+PI_HOST="${PI_HOST:-raspberrypi.local}"
+PI_TARGET="${PI_USER}@${PI_HOST}"
+PI_DIR="${PI_DIR:-/home/${PI_USER}/ir-cam}"
+# ---------------------------------------------------------------------------
 
 echo "==> [1/3] Building frontend static export (relative /api)"
 NEXT_PUBLIC_API_BASE= npm --prefix frontend run build
@@ -41,9 +45,15 @@ rsync -az --delete \
 rsync -az --delete \
   frontend/out/ "${PI_TARGET}:${PI_DIR}/frontend/out/"
 
-# requirements + systemd unit (handy to keep in sync).
+# requirements + systemd unit (handy to keep in sync). The unit is rendered
+# from the template with the configured user/dir before syncing.
 rsync -az requirements.txt "${PI_TARGET}:${PI_DIR}/requirements.txt"
-rsync -az _deploy/ircam-api.service "${PI_TARGET}:${PI_DIR}/ircam-api.service"
+RENDERED_SERVICE="$(mktemp)"
+trap 'rm -f "${RENDERED_SERVICE}"' EXIT
+sed -e "s|__PI_USER__|${PI_USER}|g" \
+    -e "s|__PI_DIR__|${PI_DIR}|g" \
+    _deploy/ircam-api.service.tpl > "${RENDERED_SERVICE}"
+rsync -az "${RENDERED_SERVICE}" "${PI_TARGET}:${PI_DIR}/ircam-api.service"
 
 echo "==> [3/3] Installing deps, restarting service, relaunching kiosk"
 ssh "${PI_TARGET}" bash -s <<EOF
