@@ -178,6 +178,23 @@ This only affects Mac dev. The Pi has no such conflict.
 - The home page UI is intentionally minimal (preview + capture) — build the real
   UI on top of `CaptureView`.
 
+## Security
+
+This app has **no authentication**. On the Pi the API service binds
+`0.0.0.0:5000`, so anyone who can reach the Pi on the network can view the live
+preview, trigger captures, and read saved images. That's intentional for a
+single-device kiosk on a trusted home/lab LAN — but it means **the Pi trusts its
+entire network**.
+
+Before exposing it more widely:
+
+- Keep the device on a trusted network; do **not** port-forward `:5000` to the
+  public internet.
+- Put it behind a reverse proxy with auth/TLS, or bind the API to `127.0.0.1`
+  and front it, if you need access beyond the local kiosk.
+- The Flask server is run directly via systemd (not behind a WSGI server). This
+  is fine for one local device but is not hardened for untrusted traffic.
+
 ## License
 
 [MIT](LICENSE) © David Chan
