@@ -46,7 +46,7 @@ export default function CaptureGallery() {
   }
 
   return (
-    <div className="h-full min-h-0 overflow-y-auto">
+    <div className="h-full min-h-0 overflow-y-auto overscroll-contain scrollbar-none [&::-webkit-scrollbar]:hidden">
       <div className="grid w-full grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
         {captures.map((filename) => (
           <figure
@@ -56,7 +56,7 @@ export default function CaptureGallery() {
             <img
               src={captureUrl(filename)}
               alt={filename}
-              className="aspect-video w-full object-cover select-none"
+              className="aspect-video w-full object-cover"
             />
             <figcaption className="truncate px-2 py-1.5 font-mono text-xs text-zinc-400">
               {filename}

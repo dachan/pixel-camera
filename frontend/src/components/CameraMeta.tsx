@@ -60,7 +60,7 @@ export default function CameraMeta() {
   }
 
   return (
-    <div className="flex h-full min-h-0 w-full flex-col gap-4 overflow-y-auto">
+    <div className="flex h-full min-h-0 w-full flex-col gap-4 overflow-y-auto overscroll-contain scrollbar-none [&::-webkit-scrollbar]:hidden">
       <section className={PANEL_CLASS}>
         <h2 className={`${HEADING_CLASS} flex items-center gap-2`}>
           <span className="h-2 w-2 animate-pulse rounded-full bg-green-500" />
