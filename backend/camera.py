@@ -191,7 +191,7 @@ class MockCamera(BaseCamera):
     def __init__(self):
         super().__init__()
         # Exposure state, mirrored from set_controls so the UI is testable.
-        self._auto_exposure = False
+        self._auto_exposure = True
         self._exposure_us = 10000   # 1/100 s
         self._gain = 1.0            # ISO 100
 
@@ -370,8 +370,8 @@ class RealCamera(BaseCamera):
         self._output = self.StreamingOutput()
         self._picam2.start_recording(MJPEGEncoder(), FileOutput(self._output))
 
-        # Exposure state echoed back to clients (defaults: manual).
-        self._state = {"auto_exposure": False, "iso": 100, "shutter_us": 10000}
+        # Exposure state echoed back to clients (defaults: auto).
+        self._state = {"auto_exposure": True, "iso": 100, "shutter_us": 10000}
         self.set_controls(self._state)
 
     def stream(self):

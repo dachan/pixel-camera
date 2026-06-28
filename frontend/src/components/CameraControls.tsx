@@ -93,7 +93,7 @@ function SliderControl({ label, value, children }: SliderControlProps) {
 
 export default function CameraControls() {
   const [state, setState] = useState<CameraControlsState>({
-    auto_exposure: false,
+    auto_exposure: true,
     iso: 100,
     shutter_us: 10000,
   });
@@ -102,18 +102,7 @@ export default function CameraControls() {
   const [captureError, setCaptureError] = useState<string | null>(null);
 
   useEffect(() => {
-    getControls()
-      .then((s) =>
-        s.auto_exposure
-          ? setControls({
-              auto_exposure: false,
-              iso: s.iso,
-              shutter_us: s.shutter_us,
-            })
-          : Promise.resolve(s)
-      )
-      .then(setState)
-      .catch(() => {});
+    getControls().then(setState).catch(() => {});
   }, []);
 
   // In auto mode, poll so sliders reflect live AE values.
@@ -147,6 +136,7 @@ export default function CameraControls() {
     } catch (e) {
       setCaptureError(e instanceof Error ? e.message : String(e));
     } finally {
+      window.dispatchEvent(new CustomEvent("camera-capture-done"));
       setCaptureBusy(false);
     }
   }

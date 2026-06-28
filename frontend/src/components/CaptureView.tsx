@@ -1,19 +1,40 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { previewUrl } from "@/lib/camera-api";
+
+const FLASH_MS = 600;
+
+type CaptureSession = {
+  flashDone: boolean;
+  captureDone: boolean;
+};
 
 export function CameraPreview() {
   const imgRef = useRef<HTMLImageElement>(null);
-  // Frozen snapshot shown during the shutter flash, plus a key to retrigger
-  // the flash animation on each capture.
+  const sessionRef = useRef<CaptureSession | null>(null);
   const [frozen, setFrozen] = useState<string | null>(null);
-  const [flashKey, setFlashKey] = useState(0);
+  const [flashing, setFlashing] = useState(false);
+  const [previewKey, setPreviewKey] = useState(0);
+
+  const resumeLivePreview = useCallback(() => {
+    sessionRef.current = null;
+    setFrozen(null);
+    setFlashing(false);
+    // Reconnect the MJPEG stream after the backend resumes video mode.
+    setPreviewKey((k) => k + 1);
+  }, []);
+
+  const tryResumeLivePreview = useCallback(() => {
+    const session = sessionRef.current;
+    if (!session?.flashDone || !session.captureDone) return;
+    resumeLivePreview();
+  }, [resumeLivePreview]);
 
   useEffect(() => {
     function onCapture() {
-      // Freeze the preview on the current frame for the flash duration, then
-      // resume the live stream.
+      sessionRef.current = { flashDone: false, captureDone: false };
+
       const img = imgRef.current;
       if (img) {
         try {
@@ -29,18 +50,38 @@ export function CameraPreview() {
           // Canvas can throw if the frame isn't ready; just skip the freeze.
         }
       }
-      setFlashKey((k) => k + 1);
-      window.setTimeout(() => setFrozen(null), 600);
+
+      setFlashing(true);
+      window.setTimeout(() => {
+        if (!sessionRef.current) return;
+        sessionRef.current.flashDone = true;
+        setFlashing(false);
+        tryResumeLivePreview();
+      }, FLASH_MS);
     }
+
+    function onCaptureDone() {
+      if (!sessionRef.current) return;
+      sessionRef.current.captureDone = true;
+      tryResumeLivePreview();
+    }
+
     window.addEventListener("camera-capture", onCapture);
-    return () => window.removeEventListener("camera-capture", onCapture);
-  }, []);
+    window.addEventListener("camera-capture-done", onCaptureDone);
+    return () => {
+      window.removeEventListener("camera-capture", onCapture);
+      window.removeEventListener("camera-capture-done", onCaptureDone);
+    };
+  }, [tryResumeLivePreview]);
+
+  const streamSrc =
+    previewKey > 0 ? `${previewUrl()}?v=${previewKey}` : previewUrl();
 
   return (
     <div className="relative flex overflow-hidden border border-zinc-800 h-full">
       <img
         ref={imgRef}
-        src={previewUrl()}
+        src={streamSrc}
         alt="Live camera preview"
         className="h-full w-full object-cover"
         width={100}
@@ -54,12 +95,11 @@ export function CameraPreview() {
           className="pointer-events-none absolute inset-0 h-full w-full object-cover"
         />
       )}
-      {flashKey > 0 && (
+      {flashing && (
         <div
-          key={flashKey}
           aria-hidden
           className="pointer-events-none absolute inset-0 bg-white"
-          style={{ animation: "camera-flash 600ms ease-out forwards" }}
+          style={{ animation: `camera-flash ${FLASH_MS}ms ease-out forwards` }}
         />
       )}
     </div>
