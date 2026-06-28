@@ -4,7 +4,7 @@
 # Steps:
 #   1. Build the frontend static export with an EMPTY API base (relative /api).
 #   2. rsync backend source + frontend/out/ to the Pi.
-#   3. ssh in: install Python deps, restart the API service, relaunch kiosk.
+#   3. ssh in: install Python deps, restart the API service.
 #
 # Auth: SSH keys (passwordless). Run `ssh-copy-id ${PI_HOST}` once beforehand.
 set -euo pipefail
@@ -55,7 +55,7 @@ sed -e "s|__PI_USER__|${PI_USER}|g" \
     _deploy/ircam-api.service.tpl > "${RENDERED_SERVICE}"
 rsync -az "${RENDERED_SERVICE}" "${PI_TARGET}:${PI_DIR}/ircam-api.service"
 
-echo "==> [3/3] Installing deps, restarting service, relaunching kiosk"
+echo "==> [3/3] Installing deps, restarting service"
 ssh "${PI_TARGET}" bash -s <<EOF
 set -euo pipefail
 cd "${PI_DIR}"
@@ -72,8 +72,6 @@ if ! systemctl list-unit-files | grep -q '^ircam-api.service'; then
   sudo systemctl enable ircam-api.service
 fi
 sudo systemctl restart ircam-api.service
-# Relaunch the kiosk so it picks up the new frontend (lwrespawn restarts it).
-pkill -f chromium || true
 EOF
 
-echo "==> Done. App live at http://${PI_HOST}:5000 (and on the Pi kiosk)."
+echo "==> Done. App live at http://${PI_HOST}:5000"

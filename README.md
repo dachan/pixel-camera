@@ -2,7 +2,8 @@
 
 A single-device camera UI: a **Next.js** (static-export) frontend and a
 **Flask + picamera2** backend. Develop on a Mac against a mock camera, then
-deploy to a Pi 5 (Bookworm 64-bit, Wayland/labwc) where it runs as a kiosk.
+deploy to a Pi 5 (Bookworm 64-bit, Wayland/labwc) where it runs as a service
+(with an optional full-screen kiosk mode).
 
 Code only ever flows **Mac → Pi**. The Pi is a runtime, not a dev box.
 
@@ -129,7 +130,14 @@ sudo systemctl daemon-reload
 sudo systemctl enable --now ircam-api.service
 ```
 
-### Kiosk autostart (labwc)
+By default the Pi does **not** boot into kiosk mode. The API runs as a service,
+and you open the app yourself in a browser (on the Pi or any device on the
+network) at `http://<pi-host>:5000`. Deploys never launch or relaunch a browser.
+
+### Optional: kiosk autostart (labwc)
+
+If you *do* want the Pi to boot straight into a full-screen Chromium kiosk on
+the app, wire up the launcher yourself (it is not configured by `deploy.sh`):
 
 ```bash
 # Copy the launcher to home and make it executable
@@ -141,10 +149,8 @@ mkdir -p ~/.config/labwc
 echo "/usr/bin/lwrespawn $HOME/kiosk.sh" >> ~/.config/labwc/autostart
 ```
 
-> Note: `deploy.sh` syncs `backend/` and `frontend/out/` but not `kiosk.sh`.
-> Copy `_deploy/kiosk.sh` to `~/kiosk.sh` on the Pi yourself (it rarely changes).
-
-### Autologin to desktop
+For the kiosk to autostart on boot the Pi needs to log into the desktop session
+automatically:
 
 ```bash
 sudo raspi-config
@@ -154,6 +160,12 @@ sudo reboot
 
 After reboot the Pi boots to the desktop, labwc autostarts `kiosk.sh`, which
 waits for the API and launches Chromium full-screen on the app.
+
+To turn kiosk mode back off later, remove the `lwrespawn` line from
+`~/.config/labwc/autostart` (and reboot, or `pkill -f chromium`).
+
+> Note: `deploy.sh` syncs `backend/` and `frontend/out/` but not `kiosk.sh`.
+> Copy `_deploy/kiosk.sh` to `~/kiosk.sh` on the Pi yourself (it rarely changes).
 
 ## Troubleshooting
 
