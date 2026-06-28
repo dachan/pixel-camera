@@ -122,3 +122,27 @@ export async function setOrientation(
   if (!res.ok) throw new Error(`set orientation failed: ${res.status}`);
   return res.json();
 }
+
+// --- Capture quality (JPEG quality for saved photos) ------------------------
+
+export type CaptureQuality = {
+  quality: number; // 1..100
+};
+
+export async function getQuality(): Promise<CaptureQuality> {
+  const res = await fetch(`${BASE}/api/camera/quality`);
+  if (!res.ok) throw new Error(`get quality failed: ${res.status}`);
+  return res.json();
+}
+
+export async function setQuality(
+  settings: Partial<CaptureQuality>,
+): Promise<CaptureQuality> {
+  const res = await fetch(`${BASE}/api/camera/quality`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(settings),
+  });
+  if (!res.ok) throw new Error(`set quality failed: ${res.status}`);
+  return res.json();
+}

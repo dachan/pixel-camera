@@ -137,6 +137,8 @@ export default function CameraControls() {
   }
 
   async function onCapture() {
+    // Trigger the shutter flash on the live preview (handled in CameraPreview).
+    window.dispatchEvent(new CustomEvent("camera-capture"));
     setCaptureBusy(true);
     setCaptureError(null);
     try {

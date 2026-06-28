@@ -73,10 +73,15 @@ class BaseCamera(abc.ABC):
 
     # Allowed capture rotations, in degrees clockwise.
     ROTATIONS = (0, 90, 180, 270)
+    # JPEG quality bounds for saved captures.
+    QUALITY_MIN = 1
+    QUALITY_MAX = 100
 
     def __init__(self):
         # Rotation (degrees clockwise) applied to captured stills.
         self._rotation = 0
+        # JPEG quality (1..100) for saved captures.
+        self._quality = 100
 
     def get_orientation(self) -> dict:
         """Return the current capture orientation: ``{"rotation": int}``."""
@@ -93,6 +98,23 @@ class BaseCamera(abc.ABC):
                 )
             self._rotation = rotation
         return self.get_orientation()
+
+    def get_quality(self) -> dict:
+        """Return the current capture JPEG quality: ``{"quality": int}``."""
+        return {"quality": getattr(self, "_quality", 100)}
+
+    def set_quality(self, settings: dict) -> dict:
+        """Set capture JPEG quality (``QUALITY_MIN``..``QUALITY_MAX``)."""
+        quality = settings.get("quality")
+        if quality is not None:
+            quality = int(quality)
+            if not self.QUALITY_MIN <= quality <= self.QUALITY_MAX:
+                raise ValueError(
+                    f"quality must be {self.QUALITY_MIN}..{self.QUALITY_MAX}, "
+                    f"got {quality}"
+                )
+            self._quality = quality
+        return self.get_quality()
 
     def _rotate_jpeg(self, data: bytes) -> bytes:
         """Apply the current rotation to encoded JPEG ``data``; no-op at 0°.
@@ -236,8 +258,15 @@ class MockCamera(BaseCamera):
                 time.sleep(interval - elapsed)
 
     def capture(self, path: str) -> None:
-        with open(path, "wb") as f:
-            f.write(self._rotate_jpeg(self._render_frame()))
+        from PIL import Image
+
+        img = Image.open(io.BytesIO(self._render_frame()))
+        rotation = getattr(self, "_rotation", 0)
+        if rotation:
+            img = img.rotate(-rotation, expand=True)
+        img.convert("RGB").save(
+            path, format="JPEG", quality=getattr(self, "_quality", 100)
+        )
 
     def info(self) -> dict:
         # A representative slice of what a real Pi sensor reports, so the UI can
@@ -367,7 +396,9 @@ class RealCamera(BaseCamera):
             if rotation:
                 # PIL rotates counter-clockwise; negate for clockwise.
                 img = img.rotate(-rotation, expand=True)
-            img.convert("RGB").save(path, format="JPEG", quality=95)
+            img.convert("RGB").save(
+                path, format="JPEG", quality=getattr(self, "_quality", 100)
+            )
         finally:
             request.release()
 

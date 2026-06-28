@@ -1,1 +1,11 @@
 @import "tailwindcss";
+
+/* Camera-shutter flash: a quick white pop that fades out. */
+@keyframes camera-flash {
+  0% {
+    opacity: 0.85;
+  }
+  100% {
+    opacity: 0;
+  }
+}

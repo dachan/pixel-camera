@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import {
   getOrientation,
   setOrientation,
+  getQuality,
+  setQuality as saveQuality,
   systemTemperature,
   type SystemTemperatures,
 } from "@/lib/camera-api";
@@ -19,12 +21,19 @@ function tempLabel(raw: string): string {
 
 export default function CameraSettings() {
   const [rotation, setRotation] = useState<number | null>(null);
+  const [quality, setQuality] = useState<number | null>(null);
   const [temps, setTemps] = useState<SystemTemperatures | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     getOrientation()
       .then((o) => setRotation(o.rotation))
+      .catch((e) => setError(e instanceof Error ? e.message : String(e)));
+  }, []);
+
+  useEffect(() => {
+    getQuality()
+      .then((q) => setQuality(q.quality))
       .catch((e) => setError(e instanceof Error ? e.message : String(e)));
   }, []);
 
@@ -47,6 +56,14 @@ export default function CameraSettings() {
     setError(null);
     setOrientation({ rotation: rot })
       .then((o) => setRotation(o.rotation))
+      .catch((e) => setError(e instanceof Error ? e.message : String(e)));
+  }
+
+  // Commit the quality to the backend (called on release, not every drag tick).
+  function commitQuality(q: number) {
+    setError(null);
+    saveQuality({ quality: q })
+      .then((s) => setQuality(s.quality))
       .catch((e) => setError(e instanceof Error ? e.message : String(e)));
   }
 
@@ -85,6 +102,39 @@ export default function CameraSettings() {
                   </button>
                 );
               })}
+            </div>
+          )}
+        </section>
+
+        <section className="flex flex-col gap-2">
+          <div className="flex flex-col gap-1">
+            <h2 className="text-sm font-bold text-zinc-300">Capture quality</h2>
+            <p className="text-sm text-zinc-500">
+              JPEG quality for saved photos (1–100). Higher means larger files.
+            </p>
+          </div>
+          {quality === null ? (
+            <p className="text-sm text-zinc-500">loading…</p>
+          ) : (
+            <div className="flex items-center gap-4">
+              <input
+                type="range"
+                min={1}
+                max={100}
+                step={1}
+                value={quality}
+                onChange={(e) => setQuality(Number(e.target.value))}
+                onPointerUp={(e) =>
+                  commitQuality(Number((e.target as HTMLInputElement).value))
+                }
+                onKeyUp={(e) =>
+                  commitQuality(Number((e.target as HTMLInputElement).value))
+                }
+                className="h-2 flex-1 cursor-pointer appearance-none rounded-full bg-zinc-700 accent-blue-600"
+              />
+              <span className="w-8 text-right font-mono text-sm text-zinc-100">
+                {quality}
+              </span>
             </div>
           )}
         </section>
