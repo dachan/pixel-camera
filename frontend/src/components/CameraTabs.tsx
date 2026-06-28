@@ -27,7 +27,7 @@ export default function CameraTabs() {
       <div className="min-h-0 flex-1 w-full">
         {active === "camera" ? (
           <div className="flex gap-4 w-full h-full">
-            <div className="w-2/3 flex items-center justify-center">
+            <div className="w-2/3 flex items-center justify-center overflow-hidden h-full">
               <CameraPreview />
             </div>
             <div className="w-1/3">

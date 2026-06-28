@@ -29,9 +29,8 @@ export default function CameraSettings() {
       <section className="flex flex-col gap-3">
         <div className="flex flex-col gap-1">
           <h2 className="text-sm font-bold text-zinc-300">Sensor rotation</h2>
-          <p className="text-xs text-zinc-500">
-            Rotation applied to the live preview and captured images, clockwise.
-            Captures match what the preview shows.
+          <p className="text-sm text-zinc-500">
+            Rotation applied to the live preview and captured images.
           </p>
         </div>
 

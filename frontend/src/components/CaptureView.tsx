@@ -4,7 +4,7 @@ import { previewUrl } from "@/lib/camera-api";
 
 export function CameraPreview() {
   return (
-    <div className="flex overflow-hidden border border-zinc-800">
+    <div className="flex border border-zinc-800 h-full">
       <img
         src={previewUrl()}
         alt="Live camera preview"
