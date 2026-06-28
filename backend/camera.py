@@ -333,6 +333,11 @@ class RealCamera(BaseCamera):
         )
         self._picam2.configure(video_config)
 
+        # Full-sensor still configuration for high-resolution captures. The
+        # streaming/main config above is only 1280x720; captures briefly switch
+        # to this (defaults to the sensor's maximum resolution) instead.
+        self._still_config = self._picam2.create_still_configuration()
+
         self._output = self.StreamingOutput()
         self._picam2.start_recording(MJPEGEncoder(), FileOutput(self._output))
 
@@ -352,18 +357,17 @@ class RealCamera(BaseCamera):
                 yield self._rotate_jpeg(frame)
 
     def capture(self, path: str) -> None:
-        # Still capture using a separate request; works while recording.
-        request = self._picam2.capture_request()
+        # Full-resolution still: briefly switch to the full-sensor still
+        # configuration, capture, then the camera returns to the streaming
+        # config. The live preview pauses for the capture and resumes after.
+        request = self._picam2.switch_mode_and_capture_request(self._still_config)
         try:
+            img = request.make_image("main")
             rotation = getattr(self, "_rotation", 0)
             if rotation:
-                # make_image() returns a PIL image; rotate clockwise and save.
-                img = request.make_image("main").convert("RGB")
-                img.rotate(-rotation, expand=True).save(
-                    path, format="JPEG", quality=90
-                )
-            else:
-                request.save("main", path)
+                # PIL rotates counter-clockwise; negate for clockwise.
+                img = img.rotate(-rotation, expand=True)
+            img.convert("RGB").save(path, format="JPEG", quality=95)
         finally:
             request.release()
 
