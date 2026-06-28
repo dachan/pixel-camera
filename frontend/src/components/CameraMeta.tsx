@@ -4,8 +4,10 @@ import { useEffect, useState } from "react";
 import {
   cameraInfo,
   cameraMetadata,
+  systemTemperature,
   type CameraInfo,
   type CameraMetadata,
+  type SystemTemperatures,
 } from "@/lib/camera-api";
 
 // Format any camera value (numbers, booleans, arrays, nested) for display.
@@ -26,9 +28,16 @@ const PANEL_CLASS =
 const HEADING_CLASS =
   "top-0 z-10 bg-zinc-900/95 px-4 pt-4 pb-2 font-semibold text-zinc-100 backdrop-blur-sm";
 
+// Friendlier names for known thermal-zone labels.
+function tempLabel(raw: string): string {
+  if (raw === "cpu-thermal") return "CPU";
+  return raw;
+}
+
 export default function CameraMeta() {
   const [info, setInfo] = useState<CameraInfo | null>(null);
   const [meta, setMeta] = useState<CameraMetadata | null>(null);
+  const [temps, setTemps] = useState<SystemTemperatures | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -51,6 +60,20 @@ export default function CameraMeta() {
     };
   }, []);
 
+  useEffect(() => {
+    let active = true;
+    const tick = () =>
+      systemTemperature()
+        .then((t) => active && setTemps(t))
+        .catch(() => active && setTemps(null));
+    tick();
+    const id = setInterval(tick, 2000);
+    return () => {
+      active = false;
+      clearInterval(id);
+    };
+  }, []);
+
   if (error) {
     return (
       <p className="flex h-full items-center justify-center text-sm text-red-500">
@@ -61,6 +84,24 @@ export default function CameraMeta() {
 
   return (
     <div className="flex h-full min-h-0 w-full flex-col gap-4 overflow-y-auto overscroll-contain scrollbar-none [&::-webkit-scrollbar]:hidden">
+      <section className={PANEL_CLASS}>
+        <h2 className={HEADING_CLASS}>Pi temperature</h2>
+        <dl className="space-y-1 px-4 pb-4">
+          {temps === null ? (
+            <p className="text-zinc-500">loading…</p>
+          ) : Object.keys(temps).length === 0 ? (
+            <p className="text-zinc-500">unavailable on this host</p>
+          ) : (
+            Object.entries(temps).map(([k, v]) => (
+              <div key={k} className="flex justify-between gap-3">
+                <dt className="text-zinc-400">{tempLabel(k)}</dt>
+                <dd className="font-mono text-zinc-100">{v.toFixed(1)} °C</dd>
+              </div>
+            ))
+          )}
+        </dl>
+      </section>
+
       <section className={PANEL_CLASS}>
         <h2 className={`${HEADING_CLASS} flex items-center gap-2`}>
           <span className="h-2 w-2 animate-pulse rounded-full bg-green-500" />

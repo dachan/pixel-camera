@@ -137,6 +137,42 @@ def camera_orientation():
         return jsonify(error=str(exc)), 503
 
 
+def _read_pi_temperatures():
+    """Read Pi thermal-zone temperatures as ``{label: celsius}``.
+
+    Reads every ``/sys/class/thermal/thermal_zone*`` (CPU, and any internal/SoC
+    sensors). Identical readings are de-duplicated so a separate "internal" temp
+    only appears when it actually differs from the CPU. Returns ``{}`` off-Pi
+    (e.g. Mac dev) where ``/sys/class/thermal`` is absent.
+    """
+    import glob
+
+    temps: dict[str, float] = {}
+    seen: set[float] = set()
+    for zone in sorted(glob.glob("/sys/class/thermal/thermal_zone*")):
+        try:
+            with open(os.path.join(zone, "temp")) as f:
+                celsius = round(int(f.read().strip()) / 1000.0, 1)
+        except (OSError, ValueError):
+            continue
+        if celsius in seen:
+            continue  # same as a zone already shown — only surface distinct temps
+        try:
+            with open(os.path.join(zone, "type")) as f:
+                label = f.read().strip()
+        except OSError:
+            label = os.path.basename(zone)
+        temps[label] = celsius
+        seen.add(celsius)
+    return temps
+
+
+@app.route("/api/system/temperature")
+def system_temperature():
+    """Pi temperatures (CPU and internal sensors) as ``{label: celsius}``."""
+    return jsonify(temperatures=_read_pi_temperatures())
+
+
 @app.route("/api/capture", methods=["POST"])
 def capture():
     os.makedirs(CAPTURES_DIR, exist_ok=True)

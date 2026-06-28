@@ -86,6 +86,19 @@ export async function setControls(
   return res.json();
 }
 
+// --- System (Pi temperatures) -----------------------------------------------
+
+// Map of thermal-zone label -> temperature in °C (e.g. { "cpu-thermal": 47.2 }).
+// Empty off-Pi (e.g. Mac dev). Identical readings are de-duplicated server-side.
+export type SystemTemperatures = Record<string, number>;
+
+export async function systemTemperature(): Promise<SystemTemperatures> {
+  const res = await fetch(`${BASE}/api/system/temperature`);
+  if (!res.ok) throw new Error(`system temperature failed: ${res.status}`);
+  const data: { temperatures: SystemTemperatures } = await res.json();
+  return data.temperatures;
+}
+
 // --- Orientation (rotation applied to captured images) ----------------------
 
 export type CameraOrientation = {
