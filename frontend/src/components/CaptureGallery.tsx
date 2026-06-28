@@ -46,7 +46,7 @@ export default function CaptureGallery() {
   }
 
   return (
-    <div className="h-full min-h-0 overflow-y-auto overscroll-contain scrollbar-none [&::-webkit-scrollbar]:hidden">
+    <div className="h-full min-h-0 overflow-y-auto touch-pan-y overscroll-contain scrollbar-none [&::-webkit-scrollbar]:hidden">
       <div className="grid w-full grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
         {captures.map((filename) => (
           <figure
