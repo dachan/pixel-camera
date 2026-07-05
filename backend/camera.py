@@ -16,12 +16,13 @@ from __future__ import annotations
 
 import abc
 import io
-import json
 import math
 import os
 import threading
 import time
 from datetime import datetime
+
+from settings_store import SettingsStore
 
 
 def _shutter_label(us: int) -> str:
@@ -134,17 +135,14 @@ class BaseCamera(abc.ABC):
         self._quality = 100
         # Capture format (one of FORMATS).
         self._format = "raw+jpeg"
-        # Where persisted settings live (override with SETTINGS_PATH). Kept next
-        # to the backend code (i.e. ~/ir-cam/settings.json on the Pi).
-        self._settings_path = os.environ.get("SETTINGS_PATH") or os.path.join(
-            os.path.dirname(os.path.abspath(__file__)), "settings.json"
-        )
+        # Settings persistence (see settings_store.py).
+        self._store = SettingsStore()
         # Suppress saving while restoring (applying loaded values back).
         self._restoring = False
 
     def get_orientation(self) -> dict:
         """Return the current capture orientation: ``{"rotation": int}``."""
-        return {"rotation": getattr(self, "_rotation", 0)}
+        return {"rotation": self._rotation}
 
     def set_orientation(self, settings: dict) -> dict:
         """Set capture rotation (degrees clockwise; one of :attr:`ROTATIONS`)."""
@@ -161,7 +159,7 @@ class BaseCamera(abc.ABC):
 
     def get_quality(self) -> dict:
         """Return the current capture JPEG quality: ``{"quality": int}``."""
-        return {"quality": getattr(self, "_quality", 100)}
+        return {"quality": self._quality}
 
     def set_quality(self, settings: dict) -> dict:
         """Set capture JPEG quality (``QUALITY_MIN``..``QUALITY_MAX``)."""
@@ -179,7 +177,7 @@ class BaseCamera(abc.ABC):
 
     def get_format(self) -> dict:
         """Return the current capture format: ``{"format": str}``."""
-        return {"format": getattr(self, "_format", "jpeg")}
+        return {"format": self._format}
 
     def set_format(self, settings: dict) -> dict:
         """Set the capture format (one of :attr:`FORMATS`)."""
@@ -198,9 +196,9 @@ class BaseCamera(abc.ABC):
     def _settings_snapshot(self) -> dict:
         """Current persistable settings."""
         snap = {
-            "rotation": getattr(self, "_rotation", 0),
-            "quality": getattr(self, "_quality", 100),
-            "format": getattr(self, "_format", "jpeg"),
+            "rotation": self._rotation,
+            "quality": self._quality,
+            "format": self._format,
         }
         try:
             snap["controls"] = self.controls_state()
@@ -210,43 +208,29 @@ class BaseCamera(abc.ABC):
 
     def _save_settings(self) -> None:
         """Persist settings to disk (best-effort; skipped while restoring)."""
-        if getattr(self, "_restoring", False):
+        if self._restoring:
             return
-        try:
-            with open(self._settings_path, "w") as f:
-                json.dump(self._settings_snapshot(), f, indent=2)
-        except OSError:
-            pass
+        self._store.save(self._settings_snapshot())
 
     def restore_settings(self) -> None:
         """Load persisted settings and apply them. Call once the camera is ready."""
-        try:
-            with open(self._settings_path) as f:
-                data = json.load(f)
-        except (OSError, ValueError):
-            return
-        if not isinstance(data, dict):
+        data = self._store.load()
+        if not data:
             return
         self._restoring = True
         try:
-            if "rotation" in data:
+            # Each setting restores independently: one bad/stale value (e.g.
+            # from an older schema) must not block the rest.
+            for key, apply in (
+                ("rotation", lambda v: self.set_orientation({"rotation": v})),
+                ("quality", lambda v: self.set_quality({"quality": v})),
+                ("format", lambda v: self.set_format({"format": v})),
+                ("controls", self.set_controls),
+            ):
+                if key not in data:
+                    continue
                 try:
-                    self.set_orientation({"rotation": data["rotation"]})
-                except Exception:
-                    pass
-            if "quality" in data:
-                try:
-                    self.set_quality({"quality": data["quality"]})
-                except Exception:
-                    pass
-            if "format" in data:
-                try:
-                    self.set_format({"format": data["format"]})
-                except Exception:
-                    pass
-            if isinstance(data.get("controls"), dict):
-                try:
-                    self.set_controls(data["controls"])
+                    apply(data[key])
                 except Exception:
                     pass
         finally:
@@ -258,7 +242,7 @@ class BaseCamera(abc.ABC):
         ``path`` is the JPEG path. Returns ``(save_jpeg, jpeg_path, save_raw,
         dng_path)``. The DNG sits next to the JPEG with a ``.dng`` extension.
         """
-        fmt = getattr(self, "_format", "jpeg")
+        fmt = self._format
         dng_path = os.path.splitext(path)[0] + ".dng"
         return (fmt in ("jpeg", "raw+jpeg"), path,
                 fmt in ("raw", "raw+jpeg"), dng_path)
@@ -266,21 +250,30 @@ class BaseCamera(abc.ABC):
     def _rotate_jpeg(self, data: bytes) -> bytes:
         """Apply the current rotation to encoded JPEG ``data``; no-op at 0°.
 
-        Used for both preview frames and captured stills so the saved image
-        matches what the live preview shows.
+        Used for preview frames so the stream matches the saved captures.
         """
-        rotation = getattr(self, "_rotation", 0)
-        if not rotation:
+        if not self._rotation:
             return data
         from PIL import Image
 
         img = Image.open(io.BytesIO(data))
         # PIL rotates counter-clockwise; negate for clockwise. expand keeps the
         # full frame when the aspect ratio flips (90/270).
-        rotated = img.rotate(-rotation, expand=True).convert("RGB")
+        rotated = img.rotate(-self._rotation, expand=True).convert("RGB")
         buf = io.BytesIO()
         rotated.save(buf, format="JPEG", quality=90)
         return buf.getvalue()
+
+    def _save_still_jpeg(self, img, path: str) -> None:
+        """Rotate a captured PIL image per current settings and save it.
+
+        The one JPEG-writing path for stills, shared by mock and real capture,
+        so rotation handling and quality can never drift between them.
+        """
+        if self._rotation:
+            # PIL rotates counter-clockwise; negate for clockwise.
+            img = img.rotate(-self._rotation, expand=True)
+        img.convert("RGB").save(path, format="JPEG", quality=self._quality)
 
     @abc.abstractmethod
     def stream(self):
@@ -419,13 +412,7 @@ class MockCamera(BaseCamera):
 
         frame = self._render_frame()
         if save_jpeg:
-            img = Image.open(io.BytesIO(frame))
-            rotation = getattr(self, "_rotation", 0)
-            if rotation:
-                img = img.rotate(-rotation, expand=True)
-            img.convert("RGB").save(
-                jpeg_path, format="JPEG", quality=getattr(self, "_quality", 100)
-            )
+            self._save_still_jpeg(Image.open(io.BytesIO(frame)), jpeg_path)
             files.append(os.path.basename(jpeg_path))
             preview = os.path.basename(jpeg_path)
         if save_raw:
@@ -578,15 +565,7 @@ class RealCamera(BaseCamera):
                 )
                 try:
                     if save_jpeg:
-                        img = request.make_image("main")
-                        rotation = getattr(self, "_rotation", 0)
-                        if rotation:
-                            # PIL rotates counter-clockwise; negate for clockwise.
-                            img = img.rotate(-rotation, expand=True)
-                        img.convert("RGB").save(
-                            path, format="JPEG",
-                            quality=getattr(self, "_quality", 100),
-                        )
+                        self._save_still_jpeg(request.make_image("main"), jpeg_path)
                         files.append(os.path.basename(jpeg_path))
                         preview = os.path.basename(jpeg_path)
                     if save_raw:
@@ -595,7 +574,7 @@ class RealCamera(BaseCamera):
                         # colour); rotation is recorded as the DNG Orientation
                         # tag so raw editors display it like the JPEG.
                         request.save_dng(dng_path)
-                        _set_dng_orientation(dng_path, getattr(self, "_rotation", 0))
+                        _set_dng_orientation(dng_path, self._rotation)
                         files.append(os.path.basename(dng_path))
                 finally:
                     request.release()

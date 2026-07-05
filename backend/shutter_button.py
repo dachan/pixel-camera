@@ -11,9 +11,12 @@ gpiozero's GPIO handling entirely for this device.
 
 from __future__ import annotations
 
+import logging
 import os
 import threading
 import time
+
+logger = logging.getLogger(__name__)
 
 # BCM pin the button is wired to (button between the pin and GND, using the
 # Pi's internal pull-up — pressed pulls the pin LOW, a falling edge).
@@ -52,6 +55,11 @@ def start_shutter_button(on_press):
             return
         try:
             on_press()
+        except Exception:
+            # Never let a failed capture (disk full, camera busy, ...)
+            # propagate into lgpio's notification thread — that would kill it
+            # and silently disable the button until the service restarts.
+            logger.exception("shutter button capture failed")
         finally:
             busy.release()
 
