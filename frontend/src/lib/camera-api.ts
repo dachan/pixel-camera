@@ -6,6 +6,41 @@
 
 const BASE = process.env.NEXT_PUBLIC_API_BASE ?? "";
 
+// --- Fetch helpers -----------------------------------------------------------
+
+async function parseJson<T>(res: Response, what: string): Promise<T> {
+  if (!res.ok) throw new Error(`${what} failed: ${res.status}`);
+  const contentType = res.headers.get("content-type") ?? "";
+  if (!contentType.includes("application/json")) {
+    throw new Error(
+      `${what} failed: backend returned HTML — restart or redeploy the backend`,
+    );
+  }
+  return res.json();
+}
+
+async function getJson<T>(path: string, what: string): Promise<T> {
+  const res = await fetch(`${BASE}/api${path}`, { cache: "no-store" });
+  return parseJson(res, what);
+}
+
+async function postJson<T>(
+  path: string,
+  what: string,
+  body?: unknown,
+): Promise<T> {
+  const res = await fetch(`${BASE}/api${path}`, {
+    method: "POST",
+    ...(body !== undefined && {
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    }),
+  });
+  return parseJson(res, what);
+}
+
+// --- Preview + capture ---------------------------------------------------------
+
 export function previewUrl(): string {
   return `${BASE}/api/preview`;
 }
@@ -16,26 +51,19 @@ export function captureEventsUrl(): string {
   return `${BASE}/api/capture/events`;
 }
 
-export async function capture(): Promise<{ filename: string }> {
-  const res = await fetch(`${BASE}/api/capture`, { method: "POST" });
-  if (!res.ok) throw new Error(`capture failed: ${res.status}`);
-  return res.json();
-}
-
 export function captureUrl(filename: string): string {
   return `${BASE}/api/captures/${encodeURIComponent(filename)}`;
 }
 
+export function capture(): Promise<{ filename: string }> {
+  return postJson("/capture", "capture");
+}
+
 export async function listCaptures(): Promise<string[]> {
-  const res = await fetch(`${BASE}/api/captures`, { cache: "no-store" });
-  if (!res.ok) throw new Error(`list captures failed: ${res.status}`);
-  const contentType = res.headers.get("content-type") ?? "";
-  if (!contentType.includes("application/json")) {
-    throw new Error(
-      "list captures failed: backend returned HTML — restart or redeploy the backend",
-    );
-  }
-  const data: { captures: string[] } = await res.json();
+  const data = await getJson<{ captures: string[] }>(
+    "/captures",
+    "list captures",
+  );
   return data.captures;
 }
 
@@ -54,16 +82,12 @@ export type CameraInfo = {
 
 export type CameraMetadata = Record<string, unknown>;
 
-export async function cameraInfo(): Promise<CameraInfo> {
-  const res = await fetch(`${BASE}/api/camera/info`);
-  if (!res.ok) throw new Error(`camera info failed: ${res.status}`);
-  return res.json();
+export function cameraInfo(): Promise<CameraInfo> {
+  return getJson("/camera/info", "camera info");
 }
 
-export async function cameraMetadata(): Promise<CameraMetadata> {
-  const res = await fetch(`${BASE}/api/camera/metadata`);
-  if (!res.ok) throw new Error(`camera metadata failed: ${res.status}`);
-  return res.json();
+export function cameraMetadata(): Promise<CameraMetadata> {
+  return getJson("/camera/metadata", "camera metadata");
 }
 
 // --- Exposure controls (ISO + shutter; aperture is fixed on Pi cameras) -----
@@ -74,44 +98,14 @@ export type CameraControlsState = {
   shutter_us: number;
 };
 
-export async function getControls(): Promise<CameraControlsState> {
-  const res = await fetch(`${BASE}/api/camera/controls`);
-  if (!res.ok) throw new Error(`get controls failed: ${res.status}`);
-  return res.json();
+export function getControls(): Promise<CameraControlsState> {
+  return getJson("/camera/controls", "get controls");
 }
 
-export async function setControls(
+export function setControls(
   settings: Partial<CameraControlsState>,
 ): Promise<CameraControlsState> {
-  const res = await fetch(`${BASE}/api/camera/controls`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(settings),
-  });
-  if (!res.ok) throw new Error(`set controls failed: ${res.status}`);
-  return res.json();
-}
-
-// --- System (Pi temperatures) -----------------------------------------------
-
-// Map of thermal-zone label -> temperature in °C (e.g. { "cpu-thermal": 47.2 }).
-// Empty off-Pi (e.g. Mac dev). Identical readings are de-duplicated server-side.
-export type SystemTemperatures = Record<string, number>;
-
-export async function systemTemperature(): Promise<SystemTemperatures> {
-  const res = await fetch(`${BASE}/api/system/temperature`);
-  if (!res.ok) throw new Error(`system temperature failed: ${res.status}`);
-  const data: { temperatures: SystemTemperatures } = await res.json();
-  return data.temperatures;
-}
-
-// Close the kiosk browser and drop to the Pi desktop. The request often won't
-// return — the page is being torn down as Chromium closes — so callers should
-// not await a response.
-export async function exitKiosk(): Promise<void> {
-  await fetch(`${BASE}/api/system/exit-kiosk`, { method: "POST" }).catch(() => {
-    // Expected: the browser may be killed before the response arrives.
-  });
+  return postJson("/camera/controls", "set controls", settings);
 }
 
 // --- Orientation (rotation applied to captured images) ----------------------
@@ -120,22 +114,14 @@ export type CameraOrientation = {
   rotation: number; // degrees clockwise: 0 | 90 | 180 | 270
 };
 
-export async function getOrientation(): Promise<CameraOrientation> {
-  const res = await fetch(`${BASE}/api/camera/orientation`);
-  if (!res.ok) throw new Error(`get orientation failed: ${res.status}`);
-  return res.json();
+export function getOrientation(): Promise<CameraOrientation> {
+  return getJson("/camera/orientation", "get orientation");
 }
 
-export async function setOrientation(
+export function setOrientation(
   settings: Partial<CameraOrientation>,
 ): Promise<CameraOrientation> {
-  const res = await fetch(`${BASE}/api/camera/orientation`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(settings),
-  });
-  if (!res.ok) throw new Error(`set orientation failed: ${res.status}`);
-  return res.json();
+  return postJson("/camera/orientation", "set orientation", settings);
 }
 
 // --- Capture quality (JPEG quality for saved photos) ------------------------
@@ -144,22 +130,14 @@ export type CaptureQuality = {
   quality: number; // 1..100
 };
 
-export async function getQuality(): Promise<CaptureQuality> {
-  const res = await fetch(`${BASE}/api/camera/quality`);
-  if (!res.ok) throw new Error(`get quality failed: ${res.status}`);
-  return res.json();
+export function getQuality(): Promise<CaptureQuality> {
+  return getJson("/camera/quality", "get quality");
 }
 
-export async function setQuality(
+export function setQuality(
   settings: Partial<CaptureQuality>,
 ): Promise<CaptureQuality> {
-  const res = await fetch(`${BASE}/api/camera/quality`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(settings),
-  });
-  if (!res.ok) throw new Error(`set quality failed: ${res.status}`);
-  return res.json();
+  return postJson("/camera/quality", "set quality", settings);
 }
 
 // --- Capture format (JPEG / RAW+JPEG / RAW DNG) -----------------------------
@@ -170,20 +148,35 @@ export type CaptureFormat = {
   format: CaptureFormatValue;
 };
 
-export async function getFormat(): Promise<CaptureFormat> {
-  const res = await fetch(`${BASE}/api/camera/format`);
-  if (!res.ok) throw new Error(`get format failed: ${res.status}`);
-  return res.json();
+export function getFormat(): Promise<CaptureFormat> {
+  return getJson("/camera/format", "get format");
 }
 
-export async function setFormat(
+export function setFormat(
   settings: Partial<CaptureFormat>,
 ): Promise<CaptureFormat> {
-  const res = await fetch(`${BASE}/api/camera/format`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(settings),
+  return postJson("/camera/format", "set format", settings);
+}
+
+// --- System ------------------------------------------------------------------
+
+// Map of thermal-zone label -> temperature in °C (e.g. { "cpu-thermal": 47.2 }).
+// Empty off-Pi (e.g. Mac dev). Identical readings are de-duplicated server-side.
+export type SystemTemperatures = Record<string, number>;
+
+export async function systemTemperature(): Promise<SystemTemperatures> {
+  const data = await getJson<{ temperatures: SystemTemperatures }>(
+    "/system/temperature",
+    "system temperature",
+  );
+  return data.temperatures;
+}
+
+// Close the kiosk browser and drop to the Pi desktop. The request often won't
+// return — the page is being torn down as Chromium closes — so errors are
+// expected and swallowed.
+export async function exitKiosk(): Promise<void> {
+  await fetch(`${BASE}/api/system/exit-kiosk`, { method: "POST" }).catch(() => {
+    // Expected: the browser may be killed before the response arrives.
   });
-  if (!res.ok) throw new Error(`set format failed: ${res.status}`);
-  return res.json();
 }

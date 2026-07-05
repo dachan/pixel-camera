@@ -1,29 +1,24 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 import { captureUrl, listCaptures } from "@/lib/camera-api";
-import { useDragScroll } from "@/lib/use-drag-scroll";
+import { errorMessage } from "@/lib/errors";
+import { usePolling } from "@/lib/use-polling";
+import DragScrollArea from "@/components/DragScrollArea";
 
 export default function CaptureGallery() {
-  const scrollRef = useDragScroll<HTMLDivElement>();
   const [captures, setCaptures] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   // Filename of the capture opened full-screen (null = grid view).
   const [selected, setSelected] = useState<string | null>(null);
 
-  const refresh = useCallback(() => {
+  usePolling(() => {
     listCaptures()
       .then(setCaptures)
-      .catch((e) => setError(e instanceof Error ? e.message : String(e)))
+      .catch((e) => setError(errorMessage(e)))
       .finally(() => setLoading(false));
-  }, []);
-
-  useEffect(() => {
-    refresh();
-    const id = setInterval(refresh, 3000);
-    return () => clearInterval(id);
-  }, [refresh]);
+  }, 3000);
 
   if (error) {
     return (
@@ -50,10 +45,7 @@ export default function CaptureGallery() {
   }
 
   return (
-    <div
-      ref={scrollRef}
-      className="h-full min-h-0 overflow-y-auto touch-pan-y overscroll-contain scrollbar-none [&::-webkit-scrollbar]:hidden"
-    >
+    <DragScrollArea>
       <div className="grid w-full grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
         {captures.map((filename) => (
           <figure
@@ -90,6 +82,6 @@ export default function CaptureGallery() {
           </span>
         </div>
       )}
-    </div>
+    </DragScrollArea>
   );
 }

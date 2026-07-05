@@ -1,17 +1,14 @@
 "use client";
 
-import {
-  useEffect,
-  useState,
-  type InputHTMLAttributes,
-  type ReactNode,
-} from "react";
+import { useState, type InputHTMLAttributes, type ReactNode } from "react";
 import {
   capture,
   getControls,
   setControls,
   type CameraControlsState,
 } from "@/lib/camera-api";
+import { errorMessage } from "@/lib/errors";
+import { usePolling } from "@/lib/use-polling";
 import Tabs from "@/components/Tabs";
 
 const EXPOSURE_TABS = [
@@ -102,24 +99,20 @@ export default function CameraControls({
     shutter_us: 10000,
   });
   const [captureBusy, setCaptureBusy] = useState(false);
-  const [lastFile, setLastFile] = useState<string | null>(null);
   const [captureError, setCaptureError] = useState<string | null>(null);
 
-  useEffect(() => {
-    getControls().then(setState).catch(() => {});
-  }, []);
-
-  // In auto mode, poll so sliders reflect live AE values.
-  useEffect(() => {
-    if (!state?.auto_exposure) return;
-    const tick = () =>
+  // In auto mode, poll so sliders reflect live AE values. (State starts in
+  // auto, so the first tick doubles as the initial fetch; if the backend is
+  // actually in manual mode, that response stops the polling.)
+  usePolling(
+    () => {
       getControls()
         .then(setState)
         .catch(() => {});
-    tick();
-    const id = setInterval(tick, 500);
-    return () => clearInterval(id);
-  }, [state?.auto_exposure]);
+    },
+    500,
+    state.auto_exposure,
+  );
 
   // Push a change to the backend and adopt the returned (authoritative) state.
   function apply(patch: Partial<CameraControlsState>) {
@@ -136,10 +129,9 @@ export default function CameraControls({
     setCaptureBusy(true);
     setCaptureError(null);
     try {
-      const { filename } = await capture();
-      setLastFile(filename);
+      await capture();
     } catch (e) {
-      setCaptureError(e instanceof Error ? e.message : String(e));
+      setCaptureError(errorMessage(e));
     } finally {
       setCaptureBusy(false);
     }
@@ -200,6 +192,11 @@ export default function CameraControls({
         >
           {captureBusy ? "Capturing…" : "Capture"}
         </button>
+      )}
+      {captureError && (
+        <p className="text-center text-sm text-red-500">
+          Capture failed: {captureError}
+        </p>
       )}
     </section>
   );

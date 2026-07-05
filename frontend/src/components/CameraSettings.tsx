@@ -13,7 +13,10 @@ import {
   type CaptureFormatValue,
   type SystemTemperatures,
 } from "@/lib/camera-api";
-import { useDragScroll } from "@/lib/use-drag-scroll";
+import { errorMessage } from "@/lib/errors";
+import { usePolling } from "@/lib/use-polling";
+import DragScrollArea from "@/components/DragScrollArea";
+import SettingToggle from "@/components/SettingToggle";
 
 // Capture rotations offered in the UI (degrees clockwise).
 const ROTATIONS = [0, 90, 180, 270] as const;
@@ -42,7 +45,6 @@ export default function CameraSettings({
   showCaptureButton: boolean;
   onCaptureButtonChange: (next: boolean) => void;
 }) {
-  const scrollRef = useDragScroll<HTMLDivElement>();
   const [rotation, setRotation] = useState<number | null>(null);
   const [quality, setQuality] = useState<number | null>(null);
   const [format, setFormat] = useState<CaptureFormatValue | null>(null);
@@ -52,41 +54,27 @@ export default function CameraSettings({
   useEffect(() => {
     getOrientation()
       .then((o) => setRotation(o.rotation))
-      .catch((e) => setError(e instanceof Error ? e.message : String(e)));
-  }, []);
-
-  useEffect(() => {
+      .catch((e) => setError(errorMessage(e)));
     getQuality()
       .then((q) => setQuality(q.quality))
-      .catch((e) => setError(e instanceof Error ? e.message : String(e)));
-  }, []);
-
-  useEffect(() => {
+      .catch((e) => setError(errorMessage(e)));
     getFormat()
       .then((f) => setFormat(f.format))
-      .catch((e) => setError(e instanceof Error ? e.message : String(e)));
+      .catch((e) => setError(errorMessage(e)));
   }, []);
 
-  useEffect(() => {
-    let active = true;
-    const tick = () =>
-      systemTemperature()
-        .then((t) => active && setTemps(t))
-        .catch(() => active && setTemps(null));
-    tick();
-    const id = setInterval(tick, 2000);
-    return () => {
-      active = false;
-      clearInterval(id);
-    };
-  }, []);
+  usePolling(() => {
+    systemTemperature()
+      .then(setTemps)
+      .catch(() => setTemps(null));
+  }, 2000);
 
   function apply(rot: number) {
     setRotation(rot); // optimistic
     setError(null);
     setOrientation({ rotation: rot })
       .then((o) => setRotation(o.rotation))
-      .catch((e) => setError(e instanceof Error ? e.message : String(e)));
+      .catch((e) => setError(errorMessage(e)));
   }
 
   // Commit the quality to the backend (called on release, not every drag tick).
@@ -94,7 +82,7 @@ export default function CameraSettings({
     setError(null);
     saveQuality({ quality: q })
       .then((s) => setQuality(s.quality))
-      .catch((e) => setError(e instanceof Error ? e.message : String(e)));
+      .catch((e) => setError(errorMessage(e)));
   }
 
   function applyFormat(f: CaptureFormatValue) {
@@ -102,7 +90,7 @@ export default function CameraSettings({
     setError(null);
     saveFormat({ format: f })
       .then((s) => setFormat(s.format))
-      .catch((e) => setError(e instanceof Error ? e.message : String(e)));
+      .catch((e) => setError(errorMessage(e)));
   }
 
   // Two-tap confirm so a stray touch doesn't drop out of the kiosk.
@@ -117,67 +105,21 @@ export default function CameraSettings({
   }
 
   return (
-    <div
-      ref={scrollRef}
-      className="h-full min-h-0 overflow-y-auto touch-pan-y overscroll-contain scrollbar-none [&::-webkit-scrollbar]:hidden"
-    >
+    <DragScrollArea>
       <div className="flex flex-col gap-6">
-        <section className="flex flex-col gap-3">
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex flex-col gap-1">
-              <h2 className="text-sm font-bold text-zinc-300">
-                Rule-of-thirds grid
-              </h2>
-              <p className="text-sm text-zinc-500">
-                Composition grid overlaid on the live preview.
-              </p>
-            </div>
-            <button
-              type="button"
-              role="switch"
-              aria-checked={showGrid}
-              onClick={() => onGridChange(!showGrid)}
-              className={`relative h-7 w-12 shrink-0 rounded-full transition ${
-                showGrid ? "bg-blue-600" : "bg-zinc-700"
-              }`}
-            >
-              <span
-                className={`absolute top-1 h-5 w-5 rounded-full bg-white transition-all ${
-                  showGrid ? "left-6" : "left-1"
-                }`}
-              />
-            </button>
-          </div>
-        </section>
+        <SettingToggle
+          title="Rule-of-thirds grid"
+          description="Composition grid overlaid on the live preview."
+          checked={showGrid}
+          onChange={onGridChange}
+        />
 
-        <section className="flex flex-col gap-3">
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex flex-col gap-1">
-              <h2 className="text-sm font-bold text-zinc-300">
-                On-screen capture button
-              </h2>
-              <p className="text-sm text-zinc-500">
-                Shutter button on the Camera tab. Turn off if you're only
-                using the physical shutter button.
-              </p>
-            </div>
-            <button
-              type="button"
-              role="switch"
-              aria-checked={showCaptureButton}
-              onClick={() => onCaptureButtonChange(!showCaptureButton)}
-              className={`relative h-7 w-12 shrink-0 rounded-full transition ${
-                showCaptureButton ? "bg-blue-600" : "bg-zinc-700"
-              }`}
-            >
-              <span
-                className={`absolute top-1 h-5 w-5 rounded-full bg-white transition-all ${
-                  showCaptureButton ? "left-6" : "left-1"
-                }`}
-              />
-            </button>
-          </div>
-        </section>
+        <SettingToggle
+          title="On-screen capture button"
+          description="Shutter button on the Camera tab. Turn off if you're only using the physical shutter button."
+          checked={showCaptureButton}
+          onChange={onCaptureButtonChange}
+        />
 
         <section className="flex flex-col gap-3">
           <div className="flex flex-col gap-1">
@@ -325,6 +267,6 @@ export default function CameraSettings({
           </button>
         </section>
       </div>
-    </div>
+    </DragScrollArea>
   );
 }

@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { CameraPreview } from "@/components/CaptureView";
 import CameraControls from "@/components/CameraControls";
 import CameraMeta from "@/components/CameraMeta";
 import CaptureGallery from "@/components/CaptureGallery";
 import CameraSettings from "@/components/CameraSettings";
 import Tabs from "@/components/Tabs";
+import { useStoredBool } from "@/lib/use-stored-bool";
 
 const TABS = [
   { id: "camera", label: "Camera" },
@@ -20,27 +21,13 @@ type TabId = (typeof TABS)[number]["id"];
 export default function CameraTabs() {
   const [active, setActive] = useState<TabId>("camera");
   // Rule-of-thirds overlay on the live preview; defaults on, persisted locally.
-  const [showGrid, setShowGrid] = useState(true);
+  const [showGrid, setShowGrid] = useStoredBool("showGrid", true);
   // On-screen Capture button; defaults on. Off is for setups relying solely
   // on the physical GPIO shutter button, to keep the kiosk UI uncluttered.
-  const [showCaptureButton, setShowCaptureButton] = useState(true);
-
-  useEffect(() => {
-    const stored = localStorage.getItem("showGrid");
-    if (stored !== null) setShowGrid(stored === "true");
-    const storedCapture = localStorage.getItem("showCaptureButton");
-    if (storedCapture !== null) setShowCaptureButton(storedCapture === "true");
-  }, []);
-
-  function toggleGrid(next: boolean) {
-    setShowGrid(next);
-    localStorage.setItem("showGrid", String(next));
-  }
-
-  function toggleCaptureButton(next: boolean) {
-    setShowCaptureButton(next);
-    localStorage.setItem("showCaptureButton", String(next));
-  }
+  const [showCaptureButton, setShowCaptureButton] = useStoredBool(
+    "showCaptureButton",
+    true,
+  );
 
   return (
     <div className="flex w-full flex-1 flex-col gap-3 overflow-hidden">
@@ -63,9 +50,9 @@ export default function CameraTabs() {
         ) : (
           <CameraSettings
             showGrid={showGrid}
-            onGridChange={toggleGrid}
+            onGridChange={setShowGrid}
             showCaptureButton={showCaptureButton}
-            onCaptureButtonChange={toggleCaptureButton}
+            onCaptureButtonChange={setShowCaptureButton}
           />
         )}
       </div>
