@@ -68,7 +68,9 @@ def _do_capture() -> dict:
 if os.environ.get("CAMERA") == "real":
     from shutter_button import start_shutter_button
 
-    start_shutter_button(_do_capture)
+    # Held at module scope: lgpio does not keep this alive on its own, and a
+    # locally-scoped callback would be garbage-collected almost immediately.
+    _shutter_button = start_shutter_button(_do_capture)
 
 
 # --------------------------------------------------------------------------- #
