@@ -126,8 +126,9 @@ export default function CameraControls() {
   }
 
   async function onCapture() {
-    // Trigger the shutter flash on the live preview (handled in CameraPreview).
-    window.dispatchEvent(new CustomEvent("camera-capture"));
+    // The shutter flash on the live preview is driven by the backend's
+    // /api/capture/events SSE stream (see CameraPreview), not from here —
+    // that's what makes it play identically for the physical shutter button.
     setCaptureBusy(true);
     setCaptureError(null);
     try {
@@ -136,7 +137,6 @@ export default function CameraControls() {
     } catch (e) {
       setCaptureError(e instanceof Error ? e.message : String(e));
     } finally {
-      window.dispatchEvent(new CustomEvent("camera-capture-done"));
       setCaptureBusy(false);
     }
   }

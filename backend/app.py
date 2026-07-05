@@ -13,7 +13,9 @@ from __future__ import annotations
 
 import argparse
 import os
+import queue
 import subprocess
+import threading
 from datetime import datetime
 
 from flask import Flask, Response, jsonify, request, send_file
@@ -56,13 +58,52 @@ CORS(app)
 camera = get_camera()
 
 
+# Subscribers (one queue per open /api/capture/events connection) that get a
+# "start"/"done" message on every capture, regardless of what triggered it.
+# This is what lets the UI shutter flash play identically whether a capture
+# came from the on-screen button or the physical GPIO button.
+_capture_subscribers: list[queue.Queue] = []
+_capture_subscribers_lock = threading.Lock()
+
+
+def _broadcast_capture_event(event: str) -> None:
+    with _capture_subscribers_lock:
+        subscribers = list(_capture_subscribers)
+    for q in subscribers:
+        q.put(event)
+
+
 def _do_capture() -> dict:
-    """Capture a still to CAPTURES_DIR. Shared by the API route and the
-    physical shutter button so both trigger the exact same capture path."""
-    os.makedirs(CAPTURES_DIR, exist_ok=True)
-    base = datetime.now().strftime("capture-%Y%m%d-%H%M%S-%f")
-    path = os.path.join(CAPTURES_DIR, base + ".jpg")
-    return camera.capture(path)
+    """Capture a still to CAPTURES_DIR. The one method every capture trigger
+    (the API route, the physical shutter button) calls, so they're always
+    identical — including the UI feedback, broadcast via SSE below."""
+    _broadcast_capture_event("start")
+    try:
+        os.makedirs(CAPTURES_DIR, exist_ok=True)
+        base = datetime.now().strftime("capture-%Y%m%d-%H%M%S-%f")
+        path = os.path.join(CAPTURES_DIR, base + ".jpg")
+        return camera.capture(path)
+    finally:
+        _broadcast_capture_event("done")
+
+
+@app.route("/api/capture/events")
+def capture_events():
+    """SSE stream of "start"/"done" capture events, from any trigger source."""
+    q: queue.Queue = queue.Queue()
+    with _capture_subscribers_lock:
+        _capture_subscribers.append(q)
+
+    def generate():
+        try:
+            while True:
+                yield f"data: {q.get()}\n\n"
+        finally:
+            with _capture_subscribers_lock:
+                if q in _capture_subscribers:
+                    _capture_subscribers.remove(q)
+
+    return Response(generate(), mimetype="text/event-stream")
 
 
 if os.environ.get("CAMERA") == "real":

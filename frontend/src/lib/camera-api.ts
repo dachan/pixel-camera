@@ -10,6 +10,12 @@ export function previewUrl(): string {
   return `${BASE}/api/preview`;
 }
 
+// SSE stream of "start"/"done" capture events, from any trigger (on-screen
+// button or the physical GPIO shutter button) — drives the shutter flash.
+export function captureEventsUrl(): string {
+  return `${BASE}/api/capture/events`;
+}
+
 export async function capture(): Promise<{ filename: string }> {
   const res = await fetch(`${BASE}/api/capture`, { method: "POST" });
   if (!res.ok) throw new Error(`capture failed: ${res.status}`);

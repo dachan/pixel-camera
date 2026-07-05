@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { previewUrl, getOrientation } from "@/lib/camera-api";
+import { previewUrl, getOrientation, captureEventsUrl } from "@/lib/camera-api";
 
 const FLASH_MS = 600;
 
@@ -75,12 +75,15 @@ export function CameraPreview({ showGrid = false }: { showGrid?: boolean }) {
       tryResumeLivePreview();
     }
 
-    window.addEventListener("camera-capture", onCapture);
-    window.addEventListener("camera-capture-done", onCaptureDone);
-    return () => {
-      window.removeEventListener("camera-capture", onCapture);
-      window.removeEventListener("camera-capture-done", onCaptureDone);
+    // Every capture — on-screen button or physical GPIO button — is signaled
+    // here by the backend, so the flash plays identically no matter the
+    // trigger (see /api/capture/events in app.py).
+    const source = new EventSource(captureEventsUrl());
+    source.onmessage = (e) => {
+      if (e.data === "start") onCapture();
+      else if (e.data === "done") onCaptureDone();
     };
+    return () => source.close();
   }, [tryResumeLivePreview]);
 
   const streamSrc =
