@@ -191,6 +191,8 @@ class BaseCamera(abc.ABC):
         self._wb = {"mode": "auto", "red_gain": 2.0, "blue_gain": 2.0}
         # Colour tuning (one of TUNINGS); real cameras load it at open time.
         self._tuning = "default"
+        # Thermal throttle flag (see thermal.py): reduces preview frame rate.
+        self._throttled = False
         # Settings persistence (see settings_store.py).
         self._store = SettingsStore()
         # Suppress saving while restoring (applying loaded values back).
@@ -371,6 +373,16 @@ class BaseCamera(abc.ABC):
         self._apply_white_balance()
         self._save_settings()
         return self.get_white_balance()
+
+    # --- Thermal throttling ------------------------------------------------------ #
+
+    def set_throttled(self, throttled: bool) -> None:
+        """Reduce (or restore) live-stream load for thermal management."""
+        self._throttled = bool(throttled)
+        self._apply_throttle()
+
+    def _apply_throttle(self) -> None:
+        """Make self._throttled take effect. Subclass hook."""
 
     # --- Colour tuning ---------------------------------------------------------- #
 
@@ -642,8 +654,10 @@ class MockCamera(BaseCamera):
         return state
 
     def stream(self):
-        interval = 1.0 / self.FPS
         while True:
+            # Honor the thermal throttle like the real camera does, so the
+            # slowdown is observable in dev.
+            interval = 1.0 / (2 if self._throttled else self.FPS)
             start = time.time()
             yield self._rotate_jpeg(self._render_frame())
             elapsed = time.time() - start
@@ -750,6 +764,10 @@ class RealCamera(BaseCamera):
 
     WIDTH = 1280
     HEIGHT = 720
+    # Preview frame duration (µs): 30fps normally, 10fps while thermally
+    # throttled — the MJPEG encode is the app's main steady heat source.
+    FRAME_US_NORMAL = 33333
+    FRAME_US_THROTTLED = 100000
 
     class StreamingOutput(io.BufferedIOBase):
         """Receives encoded JPEG frames from the MJPEGEncoder file output."""
@@ -872,8 +890,15 @@ class RealCamera(BaseCamera):
                 self._apply_white_balance()
                 if self.focus_available():
                     self._apply_focus()
+                if self._throttled:
+                    self._apply_throttle()
             finally:
                 self._restoring = was_restoring
+
+    def _apply_throttle(self) -> None:
+        us = self.FRAME_US_THROTTLED if self._throttled else self.FRAME_US_NORMAL
+        with self._camera_lock:
+            self._picam2.set_controls({"FrameDurationLimits": (us, us)})
 
     def _full_fov_raw_stream(self):
         """Raw-stream spec that keeps the preview at the sensor's full FoV.

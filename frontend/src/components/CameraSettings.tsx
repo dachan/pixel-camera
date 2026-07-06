@@ -14,7 +14,7 @@ import {
   exitKiosk,
   type CameraTuning,
   type CaptureFormatValue,
-  type SystemTemperatures,
+  type SystemThermal,
 } from "@/lib/camera-api";
 import { errorMessage } from "@/lib/errors";
 import { usePolling } from "@/lib/use-polling";
@@ -53,7 +53,7 @@ export default function CameraSettings({
   const [format, setFormat] = useState<CaptureFormatValue | null>(null);
   const [tuning, setTuning] = useState<CameraTuning | null>(null);
   const [tuningBusy, setTuningBusy] = useState(false);
-  const [temps, setTemps] = useState<SystemTemperatures | null>(null);
+  const [thermal, setThermal] = useState<SystemThermal | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -73,8 +73,8 @@ export default function CameraSettings({
 
   usePolling(() => {
     systemTemperature()
-      .then(setTemps)
-      .catch(() => setTemps(null));
+      .then(setThermal)
+      .catch(() => setThermal(null));
   }, 2000);
 
   function apply(rot: number) {
@@ -128,19 +128,33 @@ export default function CameraSettings({
       <div className="flex flex-col gap-6">
         <section className="flex flex-col gap-2">
           <h2 className="text-sm font-bold text-zinc-300">Temperature</h2>
-          {temps === null ? (
+          {thermal === null ? (
             <p className="text-sm text-zinc-500">loading…</p>
-          ) : Object.keys(temps).length === 0 ? (
+          ) : Object.keys(thermal.temperatures).length === 0 ? (
             <p className="text-sm text-zinc-500">unavailable on this host</p>
           ) : (
             <dl className="flex flex-col gap-1">
-              {Object.entries(temps).map(([k, v]) => (
+              {Object.entries(thermal.temperatures).map(([k, v]) => (
                 <div key={k} className="flex justify-between gap-3 text-sm">
                   <dt className="text-zinc-400">{tempLabel(k)}</dt>
-                  <dd className="font-mono text-zinc-100">{v.toFixed(1)} °C</dd>
+                  <dd
+                    className={`font-mono ${
+                      v >= thermal.throttle_at
+                        ? "text-amber-400"
+                        : "text-zinc-100"
+                    }`}
+                  >
+                    {v.toFixed(1)} °C
+                  </dd>
                 </div>
               ))}
             </dl>
+          )}
+          {thermal?.throttled && (
+            <p className="text-sm font-bold text-amber-400">
+              Thermal throttling active — preview limited to 10 fps until the
+              Pi cools below {Math.round(thermal.throttle_at - 5)} °C.
+            </p>
           )}
         </section>
 

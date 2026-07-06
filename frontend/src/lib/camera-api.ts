@@ -249,15 +249,19 @@ export function setFormat(
 // --- System ------------------------------------------------------------------
 
 // Map of thermal-zone label -> temperature in °C (e.g. { "cpu-thermal": 47.2 }).
-// Empty off-Pi (e.g. Mac dev). Identical readings are de-duplicated server-side.
+// Identical readings are de-duplicated server-side.
 export type SystemTemperatures = Record<string, number>;
 
-export async function systemTemperature(): Promise<SystemTemperatures> {
-  const data = await getJson<{ temperatures: SystemTemperatures }>(
-    "/system/temperature",
-    "system temperature",
-  );
-  return data.temperatures;
+export type SystemThermal = {
+  temperatures: SystemTemperatures;
+  // True while the app is reducing preview frame rate to cool the Pi.
+  throttled: boolean;
+  // The CPU temperature (°C) that triggers throttling.
+  throttle_at: number;
+};
+
+export function systemTemperature(): Promise<SystemThermal> {
+  return getJson("/system/temperature", "system temperature");
 }
 
 // Close the kiosk browser and drop to the Pi desktop. The request often won't

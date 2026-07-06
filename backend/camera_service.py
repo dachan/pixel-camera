@@ -13,6 +13,7 @@ from datetime import datetime
 
 from camera import get_camera
 from events import SseBroadcaster
+from thermal import ThermalMonitor
 
 BACKEND_DIR = os.path.dirname(os.path.abspath(__file__))
 CAPTURES_DIR = os.path.join(BACKEND_DIR, "captures")
@@ -26,6 +27,13 @@ camera = get_camera()
 
 # "start"/"done" is published here around every capture, from any trigger.
 capture_events = SseBroadcaster()
+
+# App-level thermal protection: drop the preview frame rate when the CPU
+# runs hot, restore when it cools (thresholds in thermal.py).
+thermal = ThermalMonitor(
+    on_throttle=lambda: camera.set_throttled(True),
+    on_resume=lambda: camera.set_throttled(False),
+)
 
 
 def thumbnail_for(filename: str) -> str:

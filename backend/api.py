@@ -11,19 +11,18 @@ Error contract (via blueprint-scoped handlers, so no per-route try/except):
 
 from __future__ import annotations
 
-import glob
-import math
 import os
 import subprocess
-import time
 
 from flask import Blueprint, Response, jsonify, request, send_file
 
+import thermal as thermal_config
 from camera_service import (
     CAPTURES_DIR,
     camera,
     capture_events,
     do_capture,
+    thermal,
     thumbnail_for,
 )
 
@@ -235,46 +234,14 @@ def camera_tuning():
 
 # --- System ------------------------------------------------------------------- #
 
-def _read_pi_temperatures():
-    """Read Pi thermal-zone temperatures as ``{label: celsius}``.
-
-    Reads every ``/sys/class/thermal/thermal_zone*`` (CPU, and any internal/SoC
-    sensors). Identical readings are de-duplicated so a separate "internal" temp
-    only appears when it actually differs from the CPU. Returns ``{}`` off-Pi
-    (e.g. Mac dev) where ``/sys/class/thermal`` is absent.
-    """
-    temps: dict[str, float] = {}
-    seen: set[float] = set()
-    for zone in sorted(glob.glob("/sys/class/thermal/thermal_zone*")):
-        try:
-            with open(os.path.join(zone, "temp")) as f:
-                celsius = round(int(f.read().strip()) / 1000.0, 1)
-        except (OSError, ValueError):
-            continue
-        if celsius in seen:
-            continue  # same as a zone already shown — only surface distinct temps
-        try:
-            with open(os.path.join(zone, "type")) as f:
-                label = f.read().strip()
-        except OSError:
-            label = os.path.basename(zone)
-        temps[label] = celsius
-        seen.add(celsius)
-
-    if not temps and os.environ.get("CAMERA") != "real":
-        # Mock dev (no /sys/class/thermal, e.g. macOS): synthesize a plausible,
-        # slowly wobbling CPU temperature so the panel is visible and testable
-        # off-Pi, mirroring MockCamera's synthesized metadata.
-        wobble = math.sin(time.time() * 0.3) * 0.5 + 0.5  # 0..1
-        temps["cpu-thermal"] = round(45.0 + wobble * 10.0, 1)
-
-    return temps
-
-
 @api.route("/system/temperature")
 def system_temperature():
-    """Pi temperatures (CPU and internal sensors) as ``{label: celsius}``."""
-    return jsonify(temperatures=_read_pi_temperatures())
+    """Pi temperatures plus the app's thermal-throttle state."""
+    return jsonify(
+        temperatures=thermal_config.read_temperatures(),
+        throttled=thermal.throttled,
+        throttle_at=thermal_config.THROTTLE_C,
+    )
 
 
 @api.route("/system/exit-kiosk", methods=["POST"])
