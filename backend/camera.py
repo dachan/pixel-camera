@@ -720,7 +720,28 @@ class RealCamera(BaseCamera):
         from picamera2.outputs import FileOutput
 
         self._Picamera2 = Picamera2
-        self._picam2 = Picamera2()
+
+        # Optional tuning-file override (CAMERA_TUNING=imx708 or a .json
+        # path). Main use: running a NoIR sensor with the standard tuning so
+        # colour-temperature AWB (and the WB presets) work — at the cost of a
+        # calibration that assumes an IR-cut filter. Best-effort: a bad name
+        # logs and falls back to the default tuning rather than taking the
+        # camera down.
+        self._custom_tuning = False
+        tuning = None
+        tuning_spec = os.environ.get("CAMERA_TUNING")
+        if tuning_spec:
+            fname = (tuning_spec if tuning_spec.endswith(".json")
+                     else f"{tuning_spec}.json")
+            try:
+                tuning = Picamera2.load_tuning_file(fname)
+                self._custom_tuning = True
+            except Exception:
+                import logging
+                logging.getLogger(__name__).exception(
+                    "failed to load tuning file %r; using default", fname
+                )
+        self._picam2 = Picamera2(tuning=tuning)
         self._camera_lock = threading.RLock()
 
         video_config = self._picam2.create_video_configuration(
@@ -923,6 +944,10 @@ class RealCamera(BaseCamera):
             })
 
     def wb_presets_supported(self) -> bool:
+        # A custom tuning (e.g. standard imx708 on a NoIR sensor) brings its
+        # own AWB config, so trust it to make AwbMode meaningful.
+        if self._custom_tuning:
+            return True
         model = str(self._picam2.camera_properties.get("Model", ""))
         return not model.endswith("_noir")
 
