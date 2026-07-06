@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { captureUrl, listCaptures } from "@/lib/camera-api";
+import { captureThumbUrl, captureUrl, listCaptures } from "@/lib/camera-api";
 import { errorMessage } from "@/lib/errors";
 import { usePolling } from "@/lib/use-polling";
 import DragScrollArea from "@/components/DragScrollArea";
@@ -54,8 +54,10 @@ export default function CaptureGallery() {
             className="cursor-pointer overflow-hidden rounded-lg border border-zinc-800 bg-zinc-900/50 transition hover:border-zinc-600"
           >
             <img
-              src={captureUrl(filename)}
+              src={captureThumbUrl(filename)}
               alt={filename}
+              loading="lazy"
+              decoding="async"
               className="aspect-video w-full object-cover"
             />
             <figcaption className="truncate px-2 py-1.5 font-mono text-xs text-zinc-400">

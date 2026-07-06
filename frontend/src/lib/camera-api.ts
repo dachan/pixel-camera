@@ -55,6 +55,12 @@ export function captureUrl(filename: string): string {
   return `${BASE}/api/captures/${encodeURIComponent(filename)}`;
 }
 
+// Small cached thumbnail of a capture — what the gallery grid loads, since
+// full captures are 10+ MB each.
+export function captureThumbUrl(filename: string): string {
+  return `${BASE}/api/captures/${encodeURIComponent(filename)}?thumb=1`;
+}
+
 export function capture(): Promise<{ filename: string }> {
   return postJson("/capture", "capture");
 }

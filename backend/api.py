@@ -19,7 +19,13 @@ import time
 
 from flask import Blueprint, Response, jsonify, request, send_file
 
-from camera_service import CAPTURES_DIR, camera, capture_events, do_capture
+from camera_service import (
+    CAPTURES_DIR,
+    camera,
+    capture_events,
+    do_capture,
+    thumbnail_for,
+)
 
 api = Blueprint("api", __name__, url_prefix="/api")
 
@@ -37,7 +43,10 @@ def camera_unavailable(exc):
 
 @api.after_request
 def no_cache(response):
-    response.headers["Cache-Control"] = "no-store"
+    # Captured files are immutable (timestamped names), so let the browser
+    # cache them; everything else on the API is live state.
+    if not request.path.startswith("/api/captures/"):
+        response.headers["Cache-Control"] = "no-store"
     return response
 
 
@@ -97,7 +106,11 @@ def list_captures():
 
 @api.route("/captures/<path:filename>")
 def get_capture(filename):
-    """Serve a single captured JPEG (inline) or DNG raw (download)."""
+    """Serve a single captured JPEG (inline) or DNG raw (download).
+
+    ``?thumb=1`` on a JPEG serves a small cached thumbnail instead — what
+    the gallery grid uses, since full captures run 10+ MB each.
+    """
     if os.path.basename(filename) != filename:
         return "Not found", 404
     is_jpeg = filename.endswith(".jpg")
@@ -107,11 +120,19 @@ def get_capture(filename):
     path = os.path.join(CAPTURES_DIR, filename)
     if not os.path.isfile(path):
         return "Not found", 404
+    year = 365 * 24 * 3600
     if is_dng:
         # DNG can't render in a browser; offer it as a download instead.
         return send_file(path, mimetype="image/x-adobe-dng",
-                         as_attachment=True, download_name=filename)
-    return send_file(path, mimetype="image/jpeg")
+                         as_attachment=True, download_name=filename,
+                         max_age=year)
+    if request.args.get("thumb"):
+        try:
+            return send_file(thumbnail_for(filename), mimetype="image/jpeg",
+                             max_age=year)
+        except Exception:
+            pass  # fall back to the full image below
+    return send_file(path, mimetype="image/jpeg", max_age=year)
 
 
 # --- Camera info + settings --------------------------------------------------- #
