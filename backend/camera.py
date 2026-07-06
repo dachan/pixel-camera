@@ -288,13 +288,23 @@ class BaseCamera(abc.ABC):
         if not self.focus_available():
             raise ValueError("this camera has no focus control")
         mode = settings.get("af_mode")
+        position = settings.get("lens_position")
         if mode is not None:
             if mode not in self.AF_MODES:
                 raise ValueError(
                     f"af_mode must be one of {self.AF_MODES}, got {mode!r}"
                 )
+            if (
+                mode == "manual"
+                and self._focus["af_mode"] == "continuous"
+                and position is None
+            ):
+                # Freeze focus where continuous AF currently has the lens,
+                # instead of jumping to a stale stored manual position.
+                live = self.metadata().get("LensPosition")
+                if live is not None:
+                    position = float(live)
             self._focus["af_mode"] = mode
-        position = settings.get("lens_position")
         if position is not None:
             lo, hi = self._lens_range()
             self._focus["lens_position"] = min(hi, max(lo, float(position)))
@@ -905,7 +915,12 @@ class RealCamera(BaseCamera):
                 self.set_controls(self._state)
                 self._apply_white_balance()
                 if self.focus_available():
-                    self._apply_focus()
+                    if self._af_point:
+                        # Keep an active tap-to-focus window across the
+                        # rebuild instead of silently widening to full scene.
+                        self._apply_focus_point(*self._af_point)
+                    else:
+                        self._apply_focus()
                 if self._throttled:
                     self._apply_throttle()
             finally:

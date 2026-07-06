@@ -26,8 +26,10 @@ export function CameraPreview({ showGrid = false }: { showGrid?: boolean }) {
   // Sensor rotation drives the preview box aspect: landscape at 0/180,
   // portrait at 90/270 (the streamed frame is rotated server-side to match).
   const [rotation, setRotation] = useState(0);
-  // Tap-to-focus: only offered when the camera has a focus motor.
-  const [focusAvailable, setFocusAvailable] = useState(false);
+  // Tap-to-focus: null = availability unknown (fetch pending or failed).
+  // Only a definitive false disables taps — otherwise a fetch that happens
+  // to land during a service restart would kill tap-to-focus until remount.
+  const [focusAvailable, setFocusAvailable] = useState<boolean | null>(null);
   const [focusRing, setFocusRing] = useState<{
     x: number;
     y: number;
@@ -44,7 +46,7 @@ export function CameraPreview({ showGrid = false }: { showGrid?: boolean }) {
   }, []);
 
   function onTapToFocus(e: React.MouseEvent<HTMLDivElement>) {
-    if (!focusAvailable) return;
+    if (focusAvailable === false) return;
     const rect = e.currentTarget.getBoundingClientRect();
     const x = (e.clientX - rect.left) / rect.width;
     const y = (e.clientY - rect.top) / rect.height;

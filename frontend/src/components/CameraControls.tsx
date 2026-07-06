@@ -179,14 +179,16 @@ export default function CameraControls({
     state.auto_exposure,
   );
 
-  // Live lens position while continuous AF hunts; live AWB gains outside
-  // manual — only while the relevant panel is visible.
+  // Poll focus state whenever the panel is visible — not just in continuous
+  // mode. A tap-to-focus on the preview flips the camera to continuous
+  // behind this panel's back, and gating the poll on the panel's own
+  // (possibly stale) belief meant it could never correct itself.
   usePolling(
     () => {
       getFocus().then(setFocusState).catch(() => {});
     },
     1000,
-    panel === "focus" && focus?.af_mode === "continuous",
+    panel === "focus",
   );
   usePolling(
     () => {
