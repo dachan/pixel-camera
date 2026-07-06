@@ -780,13 +780,15 @@ class RealCamera(BaseCamera):
         # underneath without breaking connected streams.
         self._output = self.StreamingOutput()
 
-        # Open with the persisted tuning choice (if any) so a saved
-        # "standard" tuning doesn't need a rebuild right after boot.
-        saved = self._store.load() or {}
-        if saved.get("tuning") in self.TUNINGS:
-            self._tuning = saved["tuning"]
-
         self._picam2 = None
+        self._model = ""
+        # Always open with the default tuning first: choosing an alternative
+        # file needs the sensor model, and probing it any other way spins up
+        # libcamera's camera manager before the tuning override can be set,
+        # which silently pins the default tuning (the IPA loads its tuning
+        # when the manager enumerates the camera). A persisted "standard"
+        # choice is applied via one rebuild right after — same proven path
+        # as toggling it in Settings.
         self._open_camera()
 
         # Exposure/focus/WB defaults applied to the live sensor. Apply without
@@ -799,12 +801,20 @@ class RealCamera(BaseCamera):
             self._apply_white_balance()
             if self.focus_available():
                 self._apply_focus()
+
+            # Persisted "standard" tuning: rebuild once, now that the state
+            # _apply_tuning re-applies exists.
+            saved = self._store.load() or {}
+            if saved.get("tuning") == "standard" and self.tuning_available():
+                self._tuning = "standard"
+                self._apply_tuning()
         finally:
             self._restoring = False
 
     def _open_camera(self) -> None:
         """(Re)build the whole pipeline: camera, configs, MJPEG encoder."""
         self._picam2 = self._Picamera2(tuning=self._load_tuning())
+        self._model = str(self._picam2.camera_properties.get("Model", ""))
 
         video_config = self._picam2.create_video_configuration(
             main={"size": (self.WIDTH, self.HEIGHT)},
@@ -826,18 +836,17 @@ class RealCamera(BaseCamera):
         """Tuning dict for the current self._tuning choice, or None (default).
 
         "standard" maps a NoIR model to its filtered variant's tuning file
-        (imx708_noir -> imx708.json). Best-effort: any failure logs and falls
-        back to the default tuning rather than taking the camera down.
+        (imx708_noir -> imx708.json), using the model cached from the
+        previous open — probing libcamera for it here would create the
+        camera manager too early and pin the default tuning (see __init__).
+        Best-effort: any failure logs and falls back to the default tuning
+        rather than taking the camera down.
         """
-        if self._tuning != "standard":
+        if self._tuning != "standard" or not self._model.endswith("_noir"):
             return None
         try:
-            infos = self._Picamera2.global_camera_info()
-            model = str(infos[0].get("Model", "")) if infos else ""
-            if not model.endswith("_noir"):
-                return None  # already the standard tuning
             return self._Picamera2.load_tuning_file(
-                model[: -len("_noir")] + ".json"
+                self._model[: -len("_noir")] + ".json"
             )
         except Exception:
             import logging
@@ -847,8 +856,7 @@ class RealCamera(BaseCamera):
             return None
 
     def tuning_available(self) -> bool:
-        model = str(self._picam2.camera_properties.get("Model", ""))
-        return model.endswith("_noir")
+        return self._model.endswith("_noir")
 
     def _apply_tuning(self) -> None:
         # The tuning file is baked in at open time, so rebuild the pipeline,
