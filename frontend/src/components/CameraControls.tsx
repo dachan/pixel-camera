@@ -309,7 +309,12 @@ export default function CameraControls({
         ) : (
           <div className="flex h-full flex-col gap-3 overflow-y-auto">
             <div className="grid shrink-0 grid-cols-2 gap-2">
-              {WB_PRESETS.map((preset) => {
+              {(wb.presets_supported
+                ? WB_PRESETS
+                : WB_PRESETS.filter((p) =>
+                    ["auto", "manual"].includes(p.value),
+                  )
+              ).map((preset) => {
                 const active = wb.mode === preset.value;
                 return (
                   <button
@@ -328,6 +333,12 @@ export default function CameraControls({
               })}
             </div>
 
+            {!wb.presets_supported && (
+              <p className="shrink-0 text-center text-xs text-zinc-500">
+                This NoIR sensor ignores WB presets — use Manual gains to
+                shift colour.
+              </p>
+            )}
             {wb.mode === "manual" ? (
               <div className="flex flex-col gap-3">
                 {(["red_gain", "blue_gain"] as const).map((key) => (

@@ -325,13 +325,23 @@ class BaseCamera(abc.ABC):
     def _apply_white_balance(self) -> None:
         """Push self._wb into the sensor. No-op for the mock."""
 
+    def wb_presets_supported(self) -> bool:
+        """Whether AwbMode presets actually do anything on this camera.
+
+        NoIR sensors ship a "greyworld" AWB tuning without colour-temperature
+        curves, so every preset behaves identically to auto — the UI hides
+        them and offers only auto/manual.
+        """
+        return True
+
     def get_white_balance(self) -> dict:
-        """WB state: ``{mode, red_gain, blue_gain}``.
+        """WB state: ``{mode, red_gain, blue_gain, presets_supported}``.
 
         Outside "manual", the gains are the live values AWB chose (from frame
         metadata) — handy as a starting point when switching to manual.
         """
         state = dict(self._wb)
+        state["presets_supported"] = self.wb_presets_supported()
         if self._wb["mode"] != "manual":
             gains = self.metadata().get("ColourGains")
             if isinstance(gains, (list, tuple)) and len(gains) == 2:
@@ -881,6 +891,10 @@ class RealCamera(BaseCamera):
                 "AfMetering": _AF_METERING_WINDOWS,
                 "AfWindows": [(wx, wy, ww, wh)],
             })
+
+    def wb_presets_supported(self) -> bool:
+        model = str(self._picam2.camera_properties.get("Model", ""))
+        return not model.endswith("_noir")
 
     def _apply_white_balance(self) -> None:
         with self._camera_lock:

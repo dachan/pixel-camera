@@ -153,6 +153,9 @@ export type WhiteBalanceState = {
   // Live AWB gains outside manual mode; the driving values in manual.
   red_gain: number;
   blue_gain: number;
+  // False on NoIR sensors, whose greyworld AWB tuning ignores AwbMode —
+  // the UI then offers only auto/manual.
+  presets_supported: boolean;
 };
 
 export function getWhiteBalance(): Promise<WhiteBalanceState> {
