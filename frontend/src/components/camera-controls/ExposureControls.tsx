@@ -87,7 +87,7 @@ export default function ExposureControls() {
         />
       </div>
 
-      <div className="flex h-full justify-around gap-2 overflow-hidden">
+      <div className="flex min-h-0 flex-1 justify-around gap-2 overflow-hidden">
         <VerticalSlider label="Shutter" value={shutterLabel(state.shutter_us)}>
           <VerticalSliderInput
             min={0}

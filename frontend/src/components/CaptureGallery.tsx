@@ -22,7 +22,7 @@ export default function CaptureGallery() {
 
   if (error) {
     return (
-      <p className="flex h-full items-center justify-center text-sm text-destructive-border">
+      <p className="flex h-full items-center justify-center text-sm text-red-500">
         Captures unavailable: {error}
       </p>
     );
@@ -30,7 +30,7 @@ export default function CaptureGallery() {
 
   if (loading) {
     return (
-      <p className="flex h-full items-center justify-center text-sm text-muted">
+      <p className="flex h-full items-center justify-center text-sm text-zinc-500">
         Loading captures…
       </p>
     );
@@ -38,7 +38,7 @@ export default function CaptureGallery() {
 
   if (captures.length === 0) {
     return (
-      <p className="flex h-full items-center justify-center text-sm text-muted">
+      <p className="flex h-full items-center justify-center text-sm text-zinc-500">
         No captures yet. Use the Capture button on the Camera tab.
       </p>
     );
@@ -51,9 +51,9 @@ export default function CaptureGallery() {
           <figure
             key={filename}
             onClick={() => setSelected(filename)}
-            className="cursor-pointer overflow-hidden rounded-lg border border-border bg-surface-elevated transition hover:border-border-hover"
+            className="cursor-pointer overflow-hidden rounded-lg border border-zinc-800 bg-zinc-900/50 transition hover:border-zinc-600"
           >
-            <div className="flex aspect-video w-full items-center justify-center bg-surface-deep">
+            <div className="flex aspect-video w-full items-center justify-center bg-zinc-950">
               <img
                 src={captureThumbUrl(filename)}
                 alt={filename}
@@ -62,7 +62,7 @@ export default function CaptureGallery() {
                 className="max-h-full max-w-full object-contain"
               />
             </div>
-            <figcaption className="truncate px-2 py-1.5 font-mono text-xs text-muted">
+            <figcaption className="truncate px-2 py-1.5 font-mono text-xs text-zinc-400">
               {filename}
             </figcaption>
           </figure>
@@ -74,14 +74,14 @@ export default function CaptureGallery() {
           role="dialog"
           aria-label={selected}
           onClick={() => setSelected(null)}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-scrim p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 p-4"
         >
           <img
             src={captureUrl(selected)}
             alt={selected}
             className="max-h-full max-w-full object-contain"
           />
-          <span className="pointer-events-none absolute bottom-3 left-1/2 -translate-x-1/2 rounded bg-overlay px-2 py-1 font-mono text-xs text-heading">
+          <span className="pointer-events-none absolute bottom-3 left-1/2 -translate-x-1/2 rounded bg-black/60 px-2 py-1 font-mono text-xs text-zinc-300">
             {selected} · tap to close
           </span>
         </div>

@@ -60,7 +60,7 @@ export default function CameraControls({
         </Button>
       )}
       {captureError && (
-        <p className="text-center text-sm text-destructive-border">
+        <p className="text-center text-sm text-red-500">
           Capture failed: {captureError}
         </p>
       )}

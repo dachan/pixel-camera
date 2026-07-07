@@ -1,181 +1,14 @@
 @import "tailwindcss";
 
-/* ── Theme ──────────────────────────────────────────────────────────────────
-   Components use semantic utilities (bg-surface, text-muted, etc.).
-   Override values per theme via [data-theme="…"] on <html>. */
-
-:root {
-  /* Page shell */
-  --background: #ffffff;
-  --foreground: #000000;
-
-  /* Surfaces */
-  --surface: #f5f5f5;
-  --surface-elevated: #efefef;
-  --surface-deep: #09090b;
-  --surface-header: #f5f5f5;
-
-  /* Text */
-  --heading: #000000;
-  --muted: #555555;
-
-  /* Primary — CTAs, active tabs, WB presets */
-  --primary: #27272a;
-  --primary-hover: #18181b;
-  --primary-foreground: #ffffff;
-  --primary-border: #27272a;
-
-  /* Inputs — switches, tiles, sliders */
-  --selected: #27272a;
-  --selected-foreground: #d1d5db;
-  --selected-border: #27272a;
-
-  --control-track: #d1d5db;
-  --control-thumb: #333333;
-  --control-rail: #d1d5db;
-  --switch-thumb: #333333;
-
-  /* Status */
-  --destructive: red;
-  --destructive-border: red;
-  --destructive-foreground: white;
-  --warning: orange;
-  --warning-border: orange;
-  --warning-foreground: white;
-  --live: green;
-  --live-border: green;
-  --live-foreground: white;
-
-  /* Borders */
-  --border: #d1d5db;
-  --border-hover: #71717a;
-  --border-subtle: #d1d5db;
-
-  /* Media / overlays */
-  --preview: #000000;
-  --overlay: #000000;
-  --scrim: #000000;
-}
-
-[data-theme="pastel"] {
-  /* Page shell */
-  --background: #faf7ff;
-  --foreground: #4c4563;
-
-  /* Surfaces */
-  --surface: #f3efff;
-  --surface-elevated: #ede9fe;
-  --surface-deep: #09090b;
-  --surface-header: #e9d5ff;
-
-  /* Text */
-  --heading: #4c4563;
-  --muted: #7a728f;
-
-  /* Primary — CTAs, active tabs, WB presets */
-  --primary: #4c4563;
-  --primary-hover: #4c4563;
-  --primary-foreground: #e9d5ff;
-  --primary-border: #4c4563;
-
-  /* Inputs — switches, tiles, sliders */
-  --selected: #4c4563;
-  --selected-foreground: #e9d5ff;
-  --selected-border: #4c4563;
-
-  --control-track: #e9d5ff;
-  --control-thumb: #4c4563;
-  --control-rail: #e9d5ff;
-  --switch-thumb: #4c4563;
-
-  /* Status */
-  --destructive: #fca5a5;
-  --destructive-border: #f87171;
-  --destructive-foreground: #e9d5ff;
-  --warning: #fcd34d;
-  --warning-border: #fbbf24;
-  --warning-foreground: #78350f;
-  --live: #86efac;
-  --live-border: #4ade80;
-  --live-foreground: #e9d5ff;
-
-  /* Borders */
-  --border: #d8ccf5;
-  --border-hover: #a78bfa;
-  --border-subtle: #e9d5ff;
-
-  /* Media / overlays */
-  --preview: #000000;
-  --overlay: #000000;
-  --scrim: #000000;
-}
-
-@theme inline {
-  /* Page shell */
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-
-  /* Surfaces */
-  --color-surface: var(--surface);
-  --color-surface-elevated: var(--surface-elevated);
-  --color-surface-deep: var(--surface-deep);
-  --color-surface-header: var(--surface-header);
-
-  /* Text */
-  --color-heading: var(--heading);
-  --color-muted: var(--muted);
-
-  /* Primary */
-  --color-primary: var(--primary);
-  --color-primary-hover: var(--primary-hover);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-primary-border: var(--primary-border);
-
-  /* Inputs */
-  --color-selected: var(--selected);
-  --color-selected-foreground: var(--selected-foreground);
-  --color-selected-border: var(--selected-border);
-
-  --color-control-track: var(--control-track);
-  --color-control-thumb: var(--control-thumb);
-  --color-control-rail: var(--control-rail);
-  --color-switch-thumb: var(--switch-thumb);
-
-  /* Status */
-  --color-destructive: var(--destructive);
-  --color-destructive-border: var(--destructive-border);
-  --color-destructive-foreground: var(--destructive-foreground);
-
-  --color-warning: var(--warning);
-  --color-warning-border: var(--warning-border);
-  --color-warning-foreground: var(--warning-foreground);
-
-  --color-live: var(--live);
-  --color-live-border: var(--live-border);
-  --color-live-foreground: var(--live-foreground);
-
-  /* Borders */
-  --color-border: var(--border);
-  --color-border-hover: var(--border-hover);
-  --color-border-subtle: var(--border-subtle);
-
-  /* Media / overlays */
-  --color-preview: var(--preview);
-  --color-overlay: var(--overlay);
-  --color-scrim: var(--scrim);
-}
-
-/* ── App styles ───────────────────────────────────────────────────────────── */
-
 /* Touch kiosk: hide native scrollbars everywhere. Scrolling is drag-based
    (see use-drag-scroll), so no scrollbar should ever be visible in any tab. */
 * {
-  scrollbar-width: none;
+  scrollbar-width: none; /* Firefox */
 }
 *::-webkit-scrollbar {
   width: 0;
   height: 0;
-  display: none;
+  display: none; /* Chromium / WebKit */
 }
 
 /* Don't let images start a native drag-and-drop — it hijacks the pointer
@@ -186,6 +19,7 @@ img {
   user-select: none;
 }
 
+/* Tap-to-focus indicator: a ring that snaps in, holds, and fades away. */
 @keyframes focus-ring {
   0% {
     transform: translate(-50%, -50%) scale(1.6);
@@ -204,6 +38,7 @@ img {
   }
 }
 
+/* Camera-shutter flash: a quick white pop that fades out. */
 @keyframes camera-flash {
   0% {
     opacity: 0.85;

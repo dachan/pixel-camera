@@ -92,7 +92,7 @@ export default function WbControls() {
   }
 
   if (!wb) {
-    return <p className="text-sm text-muted">loading…</p>;
+    return <p className="text-sm text-gray-500">loading…</p>;
   }
 
   return (
@@ -114,8 +114,8 @@ export default function WbControls() {
               }
               className={`rounded-xl border p-2.5 text-xs font-bold transition ${
                 active
-                  ? "border-primary bg-primary text-primary-foreground"
-                  : "border-primary-border text-primary hover:border-border-hover hover:text-primary-foreground"
+                  ? "border-orange-500 bg-orange-500 text-white"
+                  : "border-orange-300 text-orange-500 hover:border-gray-500 hover:text-white"
               }`}
             >
               {preset.label}
@@ -125,7 +125,7 @@ export default function WbControls() {
       </div>
 
       {!wb.presets_supported && (
-        <p className="shrink-0 text-center text-xs text-muted">
+        <p className="shrink-0 text-center text-xs text-gray-500">
           This NoIR sensor ignores WB presets — use Manual gains to shift
           colour.
         </p>
@@ -149,7 +149,7 @@ export default function WbControls() {
             ] as const
           ).map(({ key, label, gradient }) => (
             <label key={key} className="flex items-center gap-3">
-              <span className="w-8 text-xs font-bold text-muted">
+              <span className="w-8 text-xs font-bold text-gray-500">
                 {label}
               </span>
               <input
@@ -161,20 +161,20 @@ export default function WbControls() {
                 onChange={(e) =>
                   adjustWb({ [key]: Number(e.target.value) / 100 })
                 }
-                className="h-2 flex-1 cursor-pointer appearance-none accent-selected"
+                className="h-2 flex-1 cursor-pointer appearance-none accent-blue-600"
                 style={{ background: gradient }}
               />
-              <span className="w-10 text-right font-mono text-xs text-foreground">
+              <span className="w-10 text-right font-mono text-xs text-gray-100">
                 {Math.round(wbAdjust[key] * 100)}
               </span>
             </label>
           ))}
-          <p className="text-center font-mono text-xs text-muted">
+          <p className="text-center font-mono text-xs text-gray-500">
             R {wb.red_gain.toFixed(2)} · B {wb.blue_gain.toFixed(2)}
           </p>
         </div>
       ) : (
-        <p className="text-center font-mono text-xs text-muted">
+        <p className="text-center font-mono text-xs text-gray-500">
           live gains · R {wb.red_gain.toFixed(2)} · B {wb.blue_gain.toFixed(2)}
         </p>
       )}

@@ -132,7 +132,7 @@ export function CameraPreview({ showGrid = false }: { showGrid?: boolean }) {
   return (
     <div
       onClick={onTapToFocus}
-      className={`relative overflow-hidden border border-border bg-preview ${boxClass} ${
+      className={`relative overflow-hidden border border-zinc-800 bg-black ${boxClass} ${
         focusAvailable ? "cursor-crosshair" : ""
       }`}
     >

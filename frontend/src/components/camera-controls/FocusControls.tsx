@@ -42,12 +42,12 @@ export default function FocusControls() {
   }
 
   if (!focus) {
-    return <p className="text-sm text-muted">loading…</p>;
+    return <p className="text-sm text-zinc-500">loading…</p>;
   }
 
   if (!focus.available) {
     return (
-      <p className="text-sm text-muted">
+      <p className="text-sm text-zinc-500">
         This camera has no focus control.
       </p>
     );
@@ -63,7 +63,7 @@ export default function FocusControls() {
         />
       </div>
 
-      <div className="flex h-full justify-around gap-2 overflow-hidden">
+      <div className="flex min-h-0 flex-1 justify-around gap-2 overflow-hidden">
         <VerticalSlider
           label="Lens"
           value={(focus.lens_position ?? 0).toFixed(2)}
@@ -84,7 +84,7 @@ export default function FocusControls() {
         </VerticalSlider>
       </div>
 
-      <p className="shrink-0 text-center text-xs text-muted">
+      <p className="shrink-0 text-center text-xs text-zinc-500">
         0 = infinity · higher = closer
       </p>
     </div>

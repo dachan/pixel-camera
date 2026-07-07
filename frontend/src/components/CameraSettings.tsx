@@ -22,8 +22,6 @@ import { errorMessage } from "@/lib/errors";
 import { usePolling } from "@/lib/use-polling";
 import DragScrollArea from "@/components/DragScrollArea";
 import SettingToggle from "@/components/SettingToggle";
-import { THEME_OPTIONS } from "@/lib/theme";
-import { useStoredTheme } from "@/lib/use-stored-theme";
 
 // Capture rotations offered in the UI (degrees clockwise).
 const ROTATIONS = [0, 90, 180, 270] as const;
@@ -38,15 +36,6 @@ const FORMATS: { value: CaptureFormatValue; label: string; hint: string }[] = [
   { value: "jpeg", label: "JPEG", hint: "Compressed photo only." },
   { value: "raw", label: "RAW", hint: "DNG raw only — not shown in Gallery." },
 ];
-
-const TILE_ACTIVE =
-  "border-selected-border bg-selected text-selected-foreground";
-const TILE_INACTIVE =
-  "border-border-subtle text-heading hover:border-border-hover hover:text-primary-foreground";
-const DESTRUCTIVE_ACTIVE =
-  "border-destructive-border bg-destructive text-destructive-foreground";
-const DESTRUCTIVE_INACTIVE =
-  "border-border-subtle text-heading hover:border-destructive-border hover:text-primary-foreground";
 
 export default function CameraSettings({
   showGrid,
@@ -144,7 +133,6 @@ export default function CameraSettings({
   // Same two-tap confirm for the destructive delete-all.
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [deleteResult, setDeleteResult] = useState<string | null>(null);
-  const [theme, setTheme] = useStoredTheme();
   function onDeleteAllClick() {
     if (!confirmingDelete) {
       setConfirmingDelete(true);
@@ -161,37 +149,6 @@ export default function CameraSettings({
   return (
     <DragScrollArea>
       <div className="flex flex-col gap-6">
-        <section className="flex flex-col gap-3">
-          <div className="flex flex-col gap-1">
-            <h2 className="text-sm font-bold text-heading">Theme</h2>
-            <p className="text-sm text-muted">Appearance for the kiosk UI.</p>
-          </div>
-          <div className="grid grid-cols-2 gap-2">
-            {THEME_OPTIONS.map((option) => {
-              const active = theme === option.id;
-              return (
-                <button
-                  key={option.id}
-                  type="button"
-                  onClick={() => setTheme(option.id)}
-                  className={`flex flex-col gap-1 border p-3 text-left transition ${
-                    active ? TILE_ACTIVE : TILE_INACTIVE
-                  }`}
-                >
-                  <span className="text-sm font-bold">{option.label}</span>
-                  <span
-                    className={`text-xs ${
-                      active ? "text-selected-foreground/80" : "text-muted"
-                    }`}
-                  >
-                    {option.hint}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        </section>
-
         {thermal && (
           <section className="flex flex-col gap-2">
             <SettingToggle
@@ -203,7 +160,7 @@ export default function CameraSettings({
               onChange={applyThrottleEnabled}
             />
             {thermal.throttled && (
-              <p className="text-sm font-bold text-warning">
+              <p className="text-sm font-bold text-amber-400">
                 Thermal throttling active — preview limited to 10 fps until the
                 Pi cools below {Math.round(thermal.throttle_at - 5)} °C.
               </p>
@@ -227,14 +184,14 @@ export default function CameraSettings({
 
         <section className="flex flex-col gap-3">
           <div className="flex flex-col gap-1">
-            <h2 className="text-sm font-bold text-heading">Sensor rotation</h2>
-            <p className="text-sm text-muted">
+            <h2 className="text-sm font-bold text-zinc-300">Sensor rotation</h2>
+            <p className="text-sm text-zinc-500">
               Rotation applied to the live preview and captured images.
             </p>
           </div>
 
           {error ? (
-            <p className="text-sm text-destructive-border">
+            <p className="text-sm text-red-500">
               Orientation unavailable: {error}
             </p>
           ) : (
@@ -248,7 +205,9 @@ export default function CameraSettings({
                     onClick={() => apply(rot)}
                     disabled={rotation === null}
                     className={`border p-4 text-sm font-bold transition disabled:opacity-50 ${
-                      active ? TILE_ACTIVE : TILE_INACTIVE
+                      active
+                        ? "border-blue-500 bg-blue-600 text-white"
+                        : "border-gray-300 text-zinc-300 hover:border-zinc-500 hover:text-white"
                     }`}
                   >
                     {rot}°
@@ -261,13 +220,13 @@ export default function CameraSettings({
 
         <section className="flex flex-col gap-2">
           <div className="flex flex-col gap-1">
-            <h2 className="text-sm font-bold text-heading">Capture quality</h2>
-            <p className="text-sm text-muted">
+            <h2 className="text-sm font-bold text-zinc-300">Capture quality</h2>
+            <p className="text-sm text-zinc-500">
               JPEG quality for saved photos (1–100). Higher means larger files.
             </p>
           </div>
           {quality === null ? (
-            <p className="text-sm text-muted">loading…</p>
+            <p className="text-sm text-zinc-500">loading…</p>
           ) : (
             <div className="flex items-center gap-4">
               <input
@@ -283,9 +242,9 @@ export default function CameraSettings({
                 onKeyUp={(e) =>
                   commitQuality(Number((e.target as HTMLInputElement).value))
                 }
-                className="h-2 flex-1 cursor-pointer appearance-none bg-control-track accent-selected"
+                className="h-2 flex-1 cursor-pointer appearance-none bg-zinc-700 accent-blue-600"
               />
-              <span className="w-8 text-right font-mono text-sm text-foreground">
+              <span className="w-8 text-right font-mono text-sm text-zinc-100">
                 {quality}
               </span>
             </div>
@@ -294,14 +253,14 @@ export default function CameraSettings({
 
         <section className="flex flex-col gap-3">
           <div className="flex flex-col gap-1">
-            <h2 className="text-sm font-bold text-heading">Capture format</h2>
-            <p className="text-sm text-muted">
+            <h2 className="text-sm font-bold text-zinc-300">Capture format</h2>
+            <p className="text-sm text-zinc-500">
               RAW saves an unprocessed .dng for editing. Browsers can&apos;t
               preview DNG, so RAW-only photos won&apos;t appear in the Gallery.
             </p>
           </div>
           {format === null ? (
-            <p className="text-sm text-muted">loading…</p>
+            <p className="text-sm text-zinc-500">loading…</p>
           ) : (
             <div className="grid grid-cols-3 gap-2">
               {FORMATS.map((f) => {
@@ -313,13 +272,15 @@ export default function CameraSettings({
                     onClick={() => applyFormat(f.value)}
                     title={f.hint}
                     className={`flex flex-col gap-1 border p-3 text-left transition ${
-                      active ? TILE_ACTIVE : TILE_INACTIVE
+                      active
+                        ? "border-blue-500 bg-blue-600 text-white"
+                        : "border-gray-300 text-zinc-300 hover:border-zinc-500 hover:text-white"
                     }`}
                   >
                     <span className="text-sm font-bold">{f.label}</span>
                     <span
                       className={`text-xs ${
-                        active ? "text-selected-foreground/80" : "text-muted"
+                        active ? "text-blue-100" : "text-zinc-500"
                       }`}
                     >
                       {f.hint}
@@ -334,8 +295,8 @@ export default function CameraSettings({
         {tuning?.available && (
           <section className="flex flex-col gap-3">
             <div className="flex flex-col gap-1">
-              <h2 className="text-sm font-bold text-heading">Colour tuning</h2>
-              <p className="text-sm text-muted">
+              <h2 className="text-sm font-bold text-zinc-300">Colour tuning</h2>
+              <p className="text-sm text-zinc-500">
                 How this NoIR sensor interprets colour. Switching restarts the
                 camera for a few seconds.
               </p>
@@ -363,13 +324,15 @@ export default function CameraSettings({
                     onClick={() => applyTuning(option.value)}
                     disabled={tuningBusy}
                     className={`flex flex-col gap-1 border p-3 text-left transition disabled:opacity-50 ${
-                      active ? TILE_ACTIVE : TILE_INACTIVE
+                      active
+                        ? "border-blue-500 bg-blue-600 text-white"
+                        : "border-gray-300 text-zinc-300 hover:border-zinc-500 hover:text-white"
                     }`}
                   >
                     <span className="text-sm font-bold">{option.label}</span>
                     <span
                       className={`text-xs ${
-                        active ? "text-selected-foreground/80" : "text-muted"
+                        active ? "text-blue-100" : "text-zinc-500"
                       }`}
                     >
                       {option.hint}
@@ -379,7 +342,7 @@ export default function CameraSettings({
               })}
             </div>
             {tuningBusy && (
-              <p className="text-sm text-muted">
+              <p className="text-sm text-zinc-500">
                 Switching tuning — restarting the camera…
               </p>
             )}
@@ -388,10 +351,10 @@ export default function CameraSettings({
 
         <section className="flex flex-col gap-2">
           <div className="flex flex-col gap-1">
-            <h2 className="text-sm font-bold text-heading">
+            <h2 className="text-sm font-bold text-zinc-300">
               Delete all photos
             </h2>
-            <p className="text-sm text-muted">
+            <p className="text-sm text-zinc-500">
               Remove every capture (JPEG and RAW) from the Pi. This cannot be
               undone.
             </p>
@@ -400,7 +363,9 @@ export default function CameraSettings({
             type="button"
             onClick={onDeleteAllClick}
             className={`border p-4 text-sm font-bold transition ${
-              confirmingDelete ? DESTRUCTIVE_ACTIVE : DESTRUCTIVE_INACTIVE
+              confirmingDelete
+                ? "border-red-500 bg-red-600 text-white"
+                : "border-gray-300 text-zinc-300 hover:border-red-500 hover:text-white"
             }`}
           >
             {confirmingDelete
@@ -408,14 +373,14 @@ export default function CameraSettings({
               : "Delete all photos"}
           </button>
           {deleteResult && (
-            <p className="text-sm text-muted">{deleteResult}</p>
+            <p className="text-sm text-zinc-400">{deleteResult}</p>
           )}
         </section>
 
         <section className="flex flex-col gap-2">
           <div className="flex flex-col gap-1">
-            <h2 className="text-sm font-bold text-heading">Exit kiosk</h2>
-            <p className="text-sm text-muted">
+            <h2 className="text-sm font-bold text-zinc-300">Exit kiosk</h2>
+            <p className="text-sm text-zinc-500">
               Close the app and return to the Pi desktop.
             </p>
           </div>
@@ -423,7 +388,9 @@ export default function CameraSettings({
             type="button"
             onClick={onExitClick}
             className={`border p-4 text-sm font-bold transition ${
-              confirmingExit ? DESTRUCTIVE_ACTIVE : DESTRUCTIVE_INACTIVE
+              confirmingExit
+                ? "border-red-500 bg-red-600 text-white"
+                : "border-gray-300 text-zinc-300 hover:border-red-500 hover:text-white"
             }`}
           >
             {confirmingExit
