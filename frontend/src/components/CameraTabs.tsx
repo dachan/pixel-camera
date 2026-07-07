@@ -8,6 +8,7 @@ import CaptureGallery from "@/components/CaptureGallery";
 import CameraSettings from "@/components/CameraSettings";
 import Tabs from "@/components/_shared/Tabs";
 import { useStoredBool } from "@/lib/use-stored-bool";
+import { useReloadOnRestart } from "@/lib/use-reload-on-restart";
 
 const TABS = [
   { id: "camera", label: "Camera" },
@@ -19,6 +20,9 @@ const TABS = [
 type TabId = (typeof TABS)[number]["id"];
 
 export default function CameraTabs() {
+  // Auto-reload the kiosk after a deploy (backend restart bumps its token).
+  useReloadOnRestart();
+
   const [active, setActive] = useState<TabId>("camera");
   // Rule-of-thirds overlay on the live preview; defaults on, persisted locally.
   const [showGrid, setShowGrid] = useStoredBool("showGrid", true);

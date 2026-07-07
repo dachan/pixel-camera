@@ -61,6 +61,12 @@ export function captureThumbUrl(filename: string): string {
   return `${BASE}/api/captures/${encodeURIComponent(filename)}?thumb=1`;
 }
 
+// Health + a per-process "started" token that changes on every backend
+// restart (i.e. every deploy) — see use-reload-on-restart.
+export function health(): Promise<{ status: string; started: number }> {
+  return getJson("/health", "health");
+}
+
 export function capture(): Promise<{ filename: string }> {
   return postJson("/capture", "capture");
 }

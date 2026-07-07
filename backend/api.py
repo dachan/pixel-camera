@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import os
 import subprocess
+import time
 
 from flask import Blueprint, Response, jsonify, request, send_file
 
@@ -28,6 +29,11 @@ from camera_service import (
 )
 
 api = Blueprint("api", __name__, url_prefix="/api")
+
+# Per-process start token. Every deploy restarts the service, so a changed
+# value tells the (never-self-reloading) kiosk page a new build is live and
+# it should reload — see use-reload-on-restart on the frontend.
+_STARTED = time.time()
 
 
 @api.errorhandler(ValueError)
@@ -52,7 +58,7 @@ def no_cache(response):
 
 @api.route("/health")
 def health():
-    return jsonify(status="ok")
+    return jsonify(status="ok", started=_STARTED)
 
 
 # --- Live preview + capture -------------------------------------------------- #
