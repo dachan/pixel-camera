@@ -447,17 +447,23 @@ class BaseCamera(abc.ABC):
     # --- Persistence -------------------------------------------------------- #
 
     def _settings_snapshot(self) -> dict:
-        """Current persistable settings."""
-        # Focus and white balance are deliberately NOT persisted: manual
-        # focus/WB are per-scene tweaks, and the camera should always come
-        # back up in continuous AF + auto WB after a restart or reboot.
+        """Current persistable settings.
+
+        Focus and white balance persist their *intent* dicts, which hold the
+        last-set manual values (lens position, colour gains) even while in
+        continuous/auto — so the camera comes back exactly as it was left,
+        including the last manual settings.
+        """
         snap = {
             "rotation": self._rotation,
             "quality": self._quality,
             "format": self._format,
             "tuning": self._tuning,
             "throttle_enabled": self._throttle_enabled,
+            "white_balance": dict(self._wb),
         }
+        if self.focus_available():
+            snap["focus"] = dict(self._focus)
         try:
             snap["controls"] = self.controls_state()
         except Exception:
@@ -485,6 +491,8 @@ class BaseCamera(abc.ABC):
                 ("format", lambda v: self.set_format({"format": v})),
                 ("tuning", lambda v: self.set_tuning({"tuning": v})),
                 ("throttle_enabled", self.set_throttle_enabled),
+                ("focus", self.set_focus),
+                ("white_balance", self.set_white_balance),
                 ("controls", self.set_controls),
             ):
                 if key not in data:
