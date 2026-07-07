@@ -181,7 +181,7 @@ export default function CameraSettings({
                   <span className="text-sm font-bold">{option.label}</span>
                   <span
                     className={`text-xs ${
-                      active ? "text-selected-muted" : "text-muted"
+                      active ? "text-selected-foreground/80" : "text-muted"
                     }`}
                   >
                     {option.hint}
@@ -319,7 +319,7 @@ export default function CameraSettings({
                     <span className="text-sm font-bold">{f.label}</span>
                     <span
                       className={`text-xs ${
-                        active ? "text-selected-muted" : "text-muted"
+                        active ? "text-selected-foreground/80" : "text-muted"
                       }`}
                     >
                       {f.hint}
@@ -369,7 +369,7 @@ export default function CameraSettings({
                     <span className="text-sm font-bold">{option.label}</span>
                     <span
                       className={`text-xs ${
-                        active ? "text-selected-muted" : "text-muted"
+                        active ? "text-selected-foreground/80" : "text-muted"
                       }`}
                     >
                       {option.hint}

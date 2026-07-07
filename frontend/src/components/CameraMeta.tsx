@@ -25,7 +25,7 @@ function fmt(value: unknown): string {
 const PANEL_CLASS =
   "flex-1 rounded-lg border border-border bg-surface-elevated text-sm";
 const HEADING_CLASS =
-  "top-0 z-10 bg-surface-header px-4 py-1 font-semibold text-primary-foreground backdrop-blur-sm";
+  "top-0 z-10 bg-surface-header px-4 py-1 font-semibold backdrop-blur-sm";
 
 function MetaPanel({
   title,

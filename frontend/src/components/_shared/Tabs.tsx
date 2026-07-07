@@ -24,7 +24,7 @@ export default function Tabs<T extends string>({
           className={`flex-1 p-4 transition font-bold ${
             active === tab.id
               ? "bg-primary text-primary-foreground"
-              : "text-primary hover:text-primary-muted"
+              : "text-primary hover:text-muted"
           }`}
         >
           {tab.label}
