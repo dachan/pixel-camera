@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { type ReactNode, useEffect, useState } from "react";
 import {
   cameraInfo,
   cameraMetadata,
@@ -21,6 +21,36 @@ function fmt(value: unknown): string {
   if (Array.isArray(value)) return `[${value.map(fmt).join(", ")}]`;
   if (typeof value === "object") return JSON.stringify(value);
   return String(value);
+}
+
+function MetaPanel({
+  title,
+  children,
+}: {
+  title: string;
+  children: ReactNode;
+}) {
+  return (
+    <section className="flex flex-col rounded-xl border border-stone-300 bg-stone-200 text-sm shadow-lg">
+      <h2 className="top-0 z-10 rounded-t-xl bg-stone-400 px-3 py-2 font-bold text-stone-900">
+        {title}
+      </h2>
+      <dl className="space-y-1 p-3">{children}</dl>
+    </section>
+  );
+}
+
+function MetaRow({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <div className="flex justify-between gap-3">
+      <dt className="text-stone-500">{label}</dt>
+      <dd className="font-mono text-stone-500">{children}</dd>
+    </div>
+  );
+}
+
+function MetaPlaceholder({ children }: { children: ReactNode }) {
+  return <p className="text-stone-500">{children}</p>;
 }
 
 export default function CameraMeta() {
@@ -49,69 +79,45 @@ export default function CameraMeta() {
   }
 
   return (
-    <DragScrollArea className="flex flex-col gap-4">
-      <section className="flex-1 rounded-lg border border-zinc-800 bg-zinc-900/50 text-sm">
-        <h2 className="top-0 z-10 flex items-center gap-2 bg-zinc-900/95 px-4 pt-4 pb-2 font-semibold text-zinc-100 backdrop-blur-sm">
-          <span className="h-2 w-2 animate-pulse bg-green-500" />
-          Live Metadata
-        </h2>
-        <dl className="space-y-1 px-4 pb-4">
-          {meta ? (
-            Object.entries(meta).map(([k, v]) => (
-              <div key={k} className="flex justify-between gap-3">
-                <dt className="text-zinc-400">{k}</dt>
-                <dd className="font-mono text-zinc-100">{fmt(v)}</dd>
-              </div>
-            ))
-          ) : (
-            <p className="text-zinc-500">waiting…</p>
-          )}
-        </dl>
-      </section>
+    <DragScrollArea className="flex flex-col gap-4 pb-3">
+      <MetaPanel title="Live Metadata">
+        {meta ? (
+          Object.entries(meta).map(([k, v]) => (
+            <MetaRow key={k} label={k}>
+              {fmt(v)}
+            </MetaRow>
+          ))
+        ) : (
+          <MetaPlaceholder>waiting…</MetaPlaceholder>
+        )}
+      </MetaPanel>
 
-      <section className="flex-1 rounded-lg border border-zinc-800 bg-zinc-900/50 text-sm">
-        <h2 className="top-0 z-10 bg-zinc-900/95 px-4 pt-4 pb-2 font-semibold text-zinc-100 backdrop-blur-sm">
-          Controls (range)
-        </h2>
-        <dl className="space-y-1 px-4 pb-4">
-          {info ? (
-            Object.entries(info.controls).map(([k, r]) => (
-              <div key={k} className="flex justify-between gap-3">
-                <dt className="text-zinc-400">{k}</dt>
-                <dd className="font-mono text-zinc-100">
-                  {fmt(r.min)} … {fmt(r.max)}
-                  {r.default !== null && (
-                    <span className="text-zinc-500">
-                      {" "}
-                      (def {fmt(r.default)})
-                    </span>
-                  )}
-                </dd>
-              </div>
-            ))
-          ) : (
-            <p className="text-zinc-500">loading…</p>
-          )}
-        </dl>
-      </section>
+      <MetaPanel title="Controls (range)">
+        {info ? (
+          Object.entries(info.controls).map(([k, r]) => (
+            <MetaRow key={k} label={k}>
+              {fmt(r.min)} … {fmt(r.max)}
+              {r.default !== null && (
+                <span className="text-stone-500"> (def {fmt(r.default)})</span>
+              )}
+            </MetaRow>
+          ))
+        ) : (
+          <MetaPlaceholder>loading…</MetaPlaceholder>
+        )}
+      </MetaPanel>
 
-      <section className="flex-1 rounded-lg border border-zinc-800 bg-zinc-900/50 text-sm">
-        <h2 className="top-0 z-10 bg-zinc-900/95 px-4 pt-4 pb-2 font-semibold text-zinc-100 backdrop-blur-sm">
-          Properties
-        </h2>
-        <dl className="space-y-1 px-4 pb-4">
-          {info ? (
-            Object.entries(info.properties).map(([k, v]) => (
-              <div key={k} className="flex justify-between gap-3">
-                <dt className="text-zinc-400">{k}</dt>
-                <dd className="font-mono text-zinc-100">{fmt(v)}</dd>
-              </div>
-            ))
-          ) : (
-            <p className="text-zinc-500">loading…</p>
-          )}
-        </dl>
-      </section>
+      <MetaPanel title="Properties">
+        {info ? (
+          Object.entries(info.properties).map(([k, v]) => (
+            <MetaRow key={k} label={k}>
+              {fmt(v)}
+            </MetaRow>
+          ))
+        ) : (
+          <MetaPlaceholder>loading…</MetaPlaceholder>
+        )}
+      </MetaPanel>
     </DragScrollArea>
   );
 }

@@ -54,7 +54,7 @@ export function CameraPreview({ showGrid = false }: { showGrid?: boolean }) {
     setFocusRing({ x, y, key });
     window.setTimeout(
       () => setFocusRing((ring) => (ring?.key === key ? null : ring)),
-      FOCUS_RING_MS
+      FOCUS_RING_MS,
     );
     focusAtPoint(x, y).catch(() => {});
   }
@@ -132,7 +132,7 @@ export function CameraPreview({ showGrid = false }: { showGrid?: boolean }) {
   return (
     <div
       onClick={onTapToFocus}
-      className={`relative overflow-hidden border border-zinc-800 bg-black ${boxClass} ${
+      className={`relative overflow-hidden rounded-xl border-4 border-stone-50 bg-black shadow-[0_0_15px_rgba(0,0,0,0.5)] ${boxClass} ${
         focusAvailable ? "cursor-crosshair" : ""
       }`}
     >

@@ -15,16 +15,16 @@ export default function Tabs<T extends string>({
   onChange,
 }: TabsProps<T>) {
   return (
-    <div className="flex w-full overflow-hidden border border-gray-300 text-sm select-none">
+    <div className="flex w-full gap-2 text-sm select-none">
       {tabs.map((tab) => (
         <button
           key={tab.id}
           type="button"
           onClick={() => onChange(tab.id)}
-          className={`flex-1 p-4 transition font-bold ${
+          className={`flex-1 truncate rounded-sm border border-stone-300 bg-stone-100 px-4 py-2 font-mono text-sm font-bold transition ${
             active === tab.id
-              ? "bg-orange-500 text-white"
-              : "text-orange-500 hover:text-orange-400"
+              ? "text-orange-500 shadow-xs brightness-95"
+              : "text-stone-500 shadow-lg"
           }`}
         >
           {tab.label}

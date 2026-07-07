@@ -184,8 +184,10 @@ export default function CameraSettings({
 
         <section className="flex flex-col gap-3">
           <div className="flex flex-col gap-1">
-            <h2 className="text-sm font-bold text-zinc-300">Sensor rotation</h2>
-            <p className="text-sm text-zinc-500">
+            <h2 className="text-sm font-bold text-stone-500">
+              Sensor rotation
+            </h2>
+            <p className="text-sm text-stone-500">
               Rotation applied to the live preview and captured images.
             </p>
           </div>
@@ -207,7 +209,7 @@ export default function CameraSettings({
                     className={`border p-4 text-sm font-bold transition disabled:opacity-50 ${
                       active
                         ? "border-blue-500 bg-blue-600 text-white"
-                        : "border-gray-300 text-zinc-300 hover:border-zinc-500 hover:text-white"
+                        : "border-gray-300 text-stone-300 hover:border-stone-500 hover:text-white"
                     }`}
                   >
                     {rot}°
@@ -220,13 +222,15 @@ export default function CameraSettings({
 
         <section className="flex flex-col gap-2">
           <div className="flex flex-col gap-1">
-            <h2 className="text-sm font-bold text-zinc-300">Capture quality</h2>
-            <p className="text-sm text-zinc-500">
+            <h2 className="text-sm font-bold text-stone-500">
+              Capture quality
+            </h2>
+            <p className="text-sm text-stone-500">
               JPEG quality for saved photos (1–100). Higher means larger files.
             </p>
           </div>
           {quality === null ? (
-            <p className="text-sm text-zinc-500">loading…</p>
+            <p className="text-sm text-stone-500">loading…</p>
           ) : (
             <div className="flex items-center gap-4">
               <input
@@ -242,9 +246,9 @@ export default function CameraSettings({
                 onKeyUp={(e) =>
                   commitQuality(Number((e.target as HTMLInputElement).value))
                 }
-                className="h-2 flex-1 cursor-pointer appearance-none bg-zinc-700 accent-blue-600"
+                className="h-2 flex-1 cursor-pointer appearance-none bg-stone-700 accent-blue-600"
               />
-              <span className="w-8 text-right font-mono text-sm text-zinc-100">
+              <span className="w-8 text-right font-mono text-sm text-stone-100">
                 {quality}
               </span>
             </div>
@@ -253,14 +257,14 @@ export default function CameraSettings({
 
         <section className="flex flex-col gap-3">
           <div className="flex flex-col gap-1">
-            <h2 className="text-sm font-bold text-zinc-300">Capture format</h2>
-            <p className="text-sm text-zinc-500">
+            <h2 className="text-sm font-bold text-stone-500">Capture format</h2>
+            <p className="text-sm text-stone-500">
               RAW saves an unprocessed .dng for editing. Browsers can&apos;t
               preview DNG, so RAW-only photos won&apos;t appear in the Gallery.
             </p>
           </div>
           {format === null ? (
-            <p className="text-sm text-zinc-500">loading…</p>
+            <p className="text-sm text-stone-500">loading…</p>
           ) : (
             <div className="grid grid-cols-3 gap-2">
               {FORMATS.map((f) => {
@@ -274,13 +278,13 @@ export default function CameraSettings({
                     className={`flex flex-col gap-1 border p-3 text-left transition ${
                       active
                         ? "border-blue-500 bg-blue-600 text-white"
-                        : "border-gray-300 text-zinc-300 hover:border-zinc-500 hover:text-white"
+                        : "border-gray-300 text-stone-300 hover:border-stone-500 hover:text-white"
                     }`}
                   >
                     <span className="text-sm font-bold">{f.label}</span>
                     <span
                       className={`text-xs ${
-                        active ? "text-blue-100" : "text-zinc-500"
+                        active ? "text-blue-100" : "text-stone-500"
                       }`}
                     >
                       {f.hint}
@@ -295,8 +299,10 @@ export default function CameraSettings({
         {tuning?.available && (
           <section className="flex flex-col gap-3">
             <div className="flex flex-col gap-1">
-              <h2 className="text-sm font-bold text-zinc-300">Colour tuning</h2>
-              <p className="text-sm text-zinc-500">
+              <h2 className="text-sm font-bold text-stone-500">
+                Colour tuning
+              </h2>
+              <p className="text-sm text-stone-500">
                 How this NoIR sensor interprets colour. Switching restarts the
                 camera for a few seconds.
               </p>
@@ -326,13 +332,13 @@ export default function CameraSettings({
                     className={`flex flex-col gap-1 border p-3 text-left transition disabled:opacity-50 ${
                       active
                         ? "border-blue-500 bg-blue-600 text-white"
-                        : "border-gray-300 text-zinc-300 hover:border-zinc-500 hover:text-white"
+                        : "border-gray-300 text-stone-300 hover:border-stone-500 hover:text-white"
                     }`}
                   >
                     <span className="text-sm font-bold">{option.label}</span>
                     <span
                       className={`text-xs ${
-                        active ? "text-blue-100" : "text-zinc-500"
+                        active ? "text-blue-100" : "text-stone-500"
                       }`}
                     >
                       {option.hint}
@@ -342,7 +348,7 @@ export default function CameraSettings({
               })}
             </div>
             {tuningBusy && (
-              <p className="text-sm text-zinc-500">
+              <p className="text-sm text-stone-500">
                 Switching tuning — restarting the camera…
               </p>
             )}
@@ -351,10 +357,10 @@ export default function CameraSettings({
 
         <section className="flex flex-col gap-2">
           <div className="flex flex-col gap-1">
-            <h2 className="text-sm font-bold text-zinc-300">
+            <h2 className="text-sm font-bold text-stone-500">
               Delete all photos
             </h2>
-            <p className="text-sm text-zinc-500">
+            <p className="text-sm text-stone-500">
               Remove every capture (JPEG and RAW) from the Pi. This cannot be
               undone.
             </p>
@@ -364,8 +370,8 @@ export default function CameraSettings({
             onClick={onDeleteAllClick}
             className={`border p-4 text-sm font-bold transition ${
               confirmingDelete
-                ? "border-red-500 bg-red-600 text-white"
-                : "border-gray-300 text-zinc-300 hover:border-red-500 hover:text-white"
+                ? "border-red-500 bg-red-500 text-white"
+                : "border-red-500 text-red-500 hover:border-red-600 hover:text-white"
             }`}
           >
             {confirmingDelete
@@ -373,14 +379,14 @@ export default function CameraSettings({
               : "Delete all photos"}
           </button>
           {deleteResult && (
-            <p className="text-sm text-zinc-400">{deleteResult}</p>
+            <p className="text-sm text-stone-400">{deleteResult}</p>
           )}
         </section>
 
         <section className="flex flex-col gap-2">
           <div className="flex flex-col gap-1">
-            <h2 className="text-sm font-bold text-zinc-300">Exit kiosk</h2>
-            <p className="text-sm text-zinc-500">
+            <h2 className="text-sm font-bold text-stone-500">Exit kiosk</h2>
+            <p className="text-sm text-stone-500">
               Close the app and return to the Pi desktop.
             </p>
           </div>
@@ -389,8 +395,8 @@ export default function CameraSettings({
             onClick={onExitClick}
             className={`border p-4 text-sm font-bold transition ${
               confirmingExit
-                ? "border-red-500 bg-red-600 text-white"
-                : "border-gray-300 text-zinc-300 hover:border-red-500 hover:text-white"
+                ? "border-red-500 bg-red-500 text-white"
+                : "border-red-500 text-red-500 hover:border-red-600 hover:text-white"
             }`}
           >
             {confirmingExit
