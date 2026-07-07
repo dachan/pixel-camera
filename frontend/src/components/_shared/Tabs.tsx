@@ -15,7 +15,7 @@ export default function Tabs<T extends string>({
   onChange,
 }: TabsProps<T>) {
   return (
-    <div className="flex w-full overflow-hidden rounded-full border border-zinc-700 text-sm select-none">
+    <div className="flex w-full overflow-hidden border border-gray-300 text-sm select-none">
       {tabs.map((tab) => (
         <button
           key={tab.id}
@@ -23,8 +23,8 @@ export default function Tabs<T extends string>({
           onClick={() => onChange(tab.id)}
           className={`flex-1 p-4 transition font-bold ${
             active === tab.id
-              ? "bg-blue-600 text-white"
-              : "text-zinc-400 hover:text-zinc-200"
+              ? "bg-orange-500 text-white"
+              : "text-orange-500 hover:text-orange-400"
           }`}
         >
           {tab.label}

@@ -17,7 +17,7 @@ export default function DragScrollArea({
   return (
     <div
       ref={ref}
-      className={`h-full min-h-0 w-full overflow-y-auto touch-pan-y overscroll-contain ${className ?? ""}`}
+      className={`h-full min-h-0 w-full touch-pan-y overflow-y-auto overscroll-contain ${className ?? ""}`}
     >
       {children}
     </div>

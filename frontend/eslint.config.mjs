@@ -1,13 +1,26 @@
 import { defineConfig, globalIgnores } from "eslint/config";
 import nextVitals from "eslint-config-next/core-web-vitals";
 import nextTs from "eslint-config-next/typescript";
+import prettier from "eslint-config-prettier";
+import tailwindPlugin from "eslint-plugin-tailwindcss";
+
+const tailwindRecommended = tailwindPlugin.configs.recommended;
 
 const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
-  // Override default ignores of eslint-config-next.
+  ...(Array.isArray(tailwindRecommended)
+    ? tailwindRecommended
+    : [tailwindRecommended]),
+  {
+    settings: {
+      tailwindcss: {
+        cssConfigPath: "./src/app/globals.css",
+      },
+    },
+  },
+  prettier,
   globalIgnores([
-    // Default ignores of eslint-config-next:
     ".next/**",
     "out/**",
     "build/**",

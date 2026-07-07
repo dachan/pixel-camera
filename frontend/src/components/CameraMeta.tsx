@@ -58,7 +58,7 @@ export default function CameraMeta() {
     <DragScrollArea className="flex flex-col gap-4">
       <section className={PANEL_CLASS}>
         <h2 className={`${HEADING_CLASS} flex items-center gap-2`}>
-          <span className="h-2 w-2 animate-pulse rounded-full bg-green-500" />
+          <span className="h-2 w-2 animate-pulse  bg-green-500" />
           Live Metadata
         </h2>
         <dl className="space-y-1 px-4 pb-4">

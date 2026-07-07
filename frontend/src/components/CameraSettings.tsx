@@ -28,7 +28,11 @@ const ROTATIONS = [0, 90, 180, 270] as const;
 
 // Capture formats offered in the UI, with friendly labels + descriptions.
 const FORMATS: { value: CaptureFormatValue; label: string; hint: string }[] = [
-  { value: "raw+jpeg", label: "RAW + JPEG", hint: "DNG raw plus a JPEG preview." },
+  {
+    value: "raw+jpeg",
+    label: "RAW + JPEG",
+    hint: "DNG raw plus a JPEG preview.",
+  },
   { value: "jpeg", label: "JPEG", hint: "Compressed photo only." },
   { value: "raw", label: "RAW", hint: "DNG raw only — not shown in Gallery." },
 ];
@@ -149,7 +153,9 @@ export default function CameraSettings({
           <section className="flex flex-col gap-2">
             <SettingToggle
               title="Thermal throttling"
-              description={`Drop the preview to 10 fps when the CPU passes ${Math.round(thermal.throttle_at)} °C, to keep the Pi cool.`}
+              description={`Drop the preview to 10 fps when the CPU passes ${Math.round(
+                thermal.throttle_at,
+              )} °C, to keep the Pi cool.`}
               checked={thermal.throttle_enabled}
               onChange={applyThrottleEnabled}
             />
@@ -198,10 +204,10 @@ export default function CameraSettings({
                     type="button"
                     onClick={() => apply(rot)}
                     disabled={rotation === null}
-                    className={`rounded-xl border p-4 text-sm font-bold transition disabled:opacity-50 ${
+                    className={`border p-4 text-sm font-bold transition disabled:opacity-50 ${
                       active
                         ? "border-blue-500 bg-blue-600 text-white"
-                        : "border-zinc-700 text-zinc-300 hover:border-zinc-500 hover:text-white"
+                        : "border-gray-300 text-zinc-300 hover:border-zinc-500 hover:text-white"
                     }`}
                   >
                     {rot}°
@@ -236,7 +242,7 @@ export default function CameraSettings({
                 onKeyUp={(e) =>
                   commitQuality(Number((e.target as HTMLInputElement).value))
                 }
-                className="h-2 flex-1 cursor-pointer appearance-none rounded-full bg-zinc-700 accent-blue-600"
+                className="h-2 flex-1 cursor-pointer appearance-none bg-zinc-700 accent-blue-600"
               />
               <span className="w-8 text-right font-mono text-sm text-zinc-100">
                 {quality}
@@ -265,15 +271,17 @@ export default function CameraSettings({
                     type="button"
                     onClick={() => applyFormat(f.value)}
                     title={f.hint}
-                    className={`flex flex-col gap-1 rounded-xl border p-3 text-left transition ${
+                    className={`flex flex-col gap-1 border p-3 text-left transition ${
                       active
                         ? "border-blue-500 bg-blue-600 text-white"
-                        : "border-zinc-700 text-zinc-300 hover:border-zinc-500 hover:text-white"
+                        : "border-gray-300 text-zinc-300 hover:border-zinc-500 hover:text-white"
                     }`}
                   >
                     <span className="text-sm font-bold">{f.label}</span>
                     <span
-                      className={`text-xs ${active ? "text-blue-100" : "text-zinc-500"}`}
+                      className={`text-xs ${
+                        active ? "text-blue-100" : "text-zinc-500"
+                      }`}
                     >
                       {f.hint}
                     </span>
@@ -315,15 +323,17 @@ export default function CameraSettings({
                     type="button"
                     onClick={() => applyTuning(option.value)}
                     disabled={tuningBusy}
-                    className={`flex flex-col gap-1 rounded-xl border p-3 text-left transition disabled:opacity-50 ${
+                    className={`flex flex-col gap-1 border p-3 text-left transition disabled:opacity-50 ${
                       active
                         ? "border-blue-500 bg-blue-600 text-white"
-                        : "border-zinc-700 text-zinc-300 hover:border-zinc-500 hover:text-white"
+                        : "border-gray-300 text-zinc-300 hover:border-zinc-500 hover:text-white"
                     }`}
                   >
                     <span className="text-sm font-bold">{option.label}</span>
                     <span
-                      className={`text-xs ${active ? "text-blue-100" : "text-zinc-500"}`}
+                      className={`text-xs ${
+                        active ? "text-blue-100" : "text-zinc-500"
+                      }`}
                     >
                       {option.hint}
                     </span>
@@ -352,10 +362,10 @@ export default function CameraSettings({
           <button
             type="button"
             onClick={onDeleteAllClick}
-            className={`rounded-xl border p-4 text-sm font-bold transition ${
+            className={`border p-4 text-sm font-bold transition ${
               confirmingDelete
                 ? "border-red-500 bg-red-600 text-white"
-                : "border-zinc-700 text-zinc-300 hover:border-red-500 hover:text-white"
+                : "border-gray-300 text-zinc-300 hover:border-red-500 hover:text-white"
             }`}
           >
             {confirmingDelete
@@ -377,13 +387,15 @@ export default function CameraSettings({
           <button
             type="button"
             onClick={onExitClick}
-            className={`rounded-xl border p-4 text-sm font-bold transition ${
+            className={`border p-4 text-sm font-bold transition ${
               confirmingExit
                 ? "border-red-500 bg-red-600 text-white"
-                : "border-zinc-700 text-zinc-300 hover:border-red-500 hover:text-white"
+                : "border-gray-300 text-zinc-300 hover:border-red-500 hover:text-white"
             }`}
           >
-            {confirmingExit ? "Tap again to exit to desktop" : "Exit to desktop"}
+            {confirmingExit
+              ? "Tap again to exit to desktop"
+              : "Exit to desktop"}
           </button>
         </section>
       </div>
