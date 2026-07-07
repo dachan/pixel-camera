@@ -14,11 +14,11 @@ export default function Switch({
       aria-checked={checked}
       onClick={() => onChange(!checked)}
       className={`relative h-7 w-12 shrink-0 transition ${
-        checked ? "bg-blue-600" : "bg-zinc-700"
+        checked ? "bg-control-track" : "bg-control-track"
       }`}
     >
       <span
-        className={`absolute top-1 h-5 w-5 bg-white transition-all ${
+        className={`bg-switch-thumb absolute top-1 h-5 w-5 transition-all ${
           checked ? "left-6" : "left-1"
         }`}
       />

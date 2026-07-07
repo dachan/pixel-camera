@@ -42,12 +42,12 @@ export default function FocusControls() {
   }
 
   if (!focus) {
-    return <p className="text-sm text-zinc-500">loading…</p>;
+    return <p className="text-sm text-muted">loading…</p>;
   }
 
   if (!focus.available) {
     return (
-      <p className="text-sm text-zinc-500">
+      <p className="text-sm text-muted">
         This camera has no focus control.
       </p>
     );
@@ -84,7 +84,7 @@ export default function FocusControls() {
         </VerticalSlider>
       </div>
 
-      <p className="shrink-0 text-center text-xs text-zinc-500">
+      <p className="shrink-0 text-center text-xs text-muted">
         0 = infinity · higher = closer
       </p>
     </div>

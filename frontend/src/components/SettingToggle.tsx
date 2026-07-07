@@ -19,8 +19,8 @@ export default function SettingToggle({
     <section className="flex flex-col gap-3">
       <div className="flex items-center justify-between gap-3">
         <div className="flex flex-col gap-1">
-          <h2 className="text-sm font-bold text-zinc-300">{title}</h2>
-          <p className="text-sm text-zinc-500">{description}</p>
+          <h2 className="text-sm font-bold text-heading">{title}</h2>
+          <p className="text-sm text-muted">{description}</p>
         </div>
         <Switch checked={checked} onChange={onChange} />
       </div>

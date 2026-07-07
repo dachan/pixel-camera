@@ -29,10 +29,10 @@ function batteryLevel(thermal: SystemThermal | null): string {
 function StatusItem({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-baseline gap-2">
-      <span className="text-xs font-bold tracking-wide text-zinc-500 uppercase">
+      <span className="text-xs font-bold tracking-wide text-muted uppercase">
         {label}
       </span>
-      <span className="font-mono text-xs text-zinc-100">{value}</span>
+      <span className="font-mono text-xs text-foreground">{value}</span>
     </div>
   );
 }
@@ -54,7 +54,7 @@ export default function StatusRow() {
   }, 2000);
 
   return (
-    <div className="flex w-full items-center justify-between bg-zinc-900/60 px-4 py-2">
+    <div className="flex w-full items-center justify-between bg-surface px-4 py-2">
       <StatusItem label="Time" value={now ? formatTime(now) : "—"} />
       <StatusItem label="Battery" value={batteryLevel(thermal)} />
       <StatusItem label="Temp" value={currentTemperature(thermal)} />

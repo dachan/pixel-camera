@@ -1,5 +1,169 @@
 @import "tailwindcss";
 
+/* ── Theme tokens ───────────────────────────────────────────────────────────
+   Components use semantic Tailwind utilities (bg-surface, text-muted, etc.).
+   Change the look by editing these variables — or override them per theme
+   via [data-theme="…"] on <html>. */
+
+:root {
+  /* Page shell */
+  --background: #ffffff;
+  --foreground: #000000;
+
+  /* Surfaces (dark panels, cards, status bar) */
+  --surface: #f5f5f5;
+  --surface-elevated: #efefef;
+  --surface-deep: #09090b;
+  --surface-header: #555555;
+
+  /* Text roles */
+  --heading: #000000;
+  --muted: #000000;
+
+  /* Primary — CTAs, active tabs, WB presets */
+  --primary: #27272a;
+  --primary-hover: #18181b;
+  --primary-muted: #71717a;
+  --primary-soft: #52525b;
+  --primary-foreground: #ffffff;
+  --primary-border: #a1a1aa;
+
+  /* Selected — toggles, setting tiles, range accents */
+  --selected: #3f3f46;
+  --selected-border: #52525b;
+  --selected-muted: #d4d4d8;
+  --selected-foreground: #ffffff;
+
+  /* Destructive — delete, exit kiosk */
+  --destructive: red;
+  --destructive-border: red;
+  --destructive-foreground: white;
+  --warning: orange;
+  --warning-border: orange;
+  --warning-foreground: white;
+  --live: green;
+  --live-border: green;
+  --live-foreground: white;
+
+  /* Borders */
+  --border: #d1d5db;
+  --border-hover: #71717a;
+  --border-subtle: #d1d5db;
+
+  /* Controls — sliders, switches */
+  --control-track: #d1d5db;
+  --control-thumb: #333333;
+  --control-rail: #d1d5db;
+  --switch-thumb: #333333;
+
+  /* Media / overlays */
+  --preview: #000000;
+  --overlay: #000000;
+  --scrim: #000000;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+
+  --color-surface: var(--surface);
+  --color-surface-elevated: var(--surface-elevated);
+  --color-surface-deep: var(--surface-deep);
+  --color-surface-header: var(--surface-header);
+
+  --color-heading: var(--heading);
+  --color-muted: var(--muted);
+
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-muted: var(--primary-soft);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-border: var(--primary-border);
+
+  --color-selected: var(--selected);
+  --color-selected-border: var(--selected-border);
+  --color-selected-muted: var(--selected-muted);
+  --color-selected-foreground: var(--selected-foreground);
+
+  --color-destructive: var(--destructive);
+  --color-destructive-border: var(--destructive-border);
+  --color-destructive-foreground: var(--destructive-foreground);
+
+  --color-warning: var(--warning);
+  --color-live: var(--live);
+
+  --color-border: var(--border);
+  --color-border-hover: var(--border-hover);
+  --color-border-subtle: var(--border-subtle);
+
+  --color-control-track: var(--control-track);
+  --color-control-thumb: var(--control-thumb);
+  --color-control-rail: var(--control-rail);
+  --color-control-accent: var(--control-accent);
+  --color-switch-thumb: var(--switch-thumb);
+
+  --color-preview: var(--preview);
+  --color-overlay: var(--overlay);
+  --color-scrim: var(--scrim);
+}
+
+/* Pastel theme — set data-theme="pastel" on <html> to activate */
+[data-theme="pastel"] {
+  /* Page shell */
+  --background: #faf7ff;
+  --foreground: #3d3654;
+
+  /* Surfaces */
+  --surface: rgb(237 233 254 / 0.88);
+  --surface-elevated: #ede9fe;
+  --surface-deep: #ddd6fe;
+  --surface-header: rgb(237 233 254 / 0.98);
+
+  /* Text roles */
+  --heading: #5b5470;
+  --muted: #8b849c;
+
+  /* Primary — soft peach */
+  --primary: #fdba94;
+  --primary-hover: #fb923c;
+  --primary-muted: #fdba94;
+  --primary-soft: #fed7aa;
+  --primary-foreground: #431407;
+  --primary-border: #fed7aa;
+
+  /* Selected — periwinkle */
+  --selected: #a5b4fc;
+  --selected-border: #818cf8;
+  --selected-muted: #e0e7ff;
+  --selected-foreground: #1e1b4b;
+
+  /* Destructive — soft rose */
+  --destructive: #fca5a5;
+  --destructive-border: #f87171;
+  --destructive-foreground: #450a0a;
+
+  /* Status */
+  --warning: #fcd34d;
+  --live: #86efac;
+
+  /* Borders */
+  --border: #c4b5fd;
+  --border-hover: #a78bfa;
+  --border-subtle: #e9d5ff;
+
+  /* Controls */
+  --control-track: #ddd6fe;
+  --control-thumb: #a78bfa;
+  --control-rail: #ede9fe;
+  --control-accent: #818cf8;
+  --switch-thumb: #ffffff;
+
+  /* Media / overlays */
+  --preview: #000000;
+  --overlay: rgb(76 29 149 / 0.45);
+  --scrim: rgb(46 38 64 / 0.92);
+}
+
 /* Touch kiosk: hide native scrollbars everywhere. Scrolling is drag-based
    (see use-drag-scroll), so no scrollbar should ever be visible in any tab. */
 * {
