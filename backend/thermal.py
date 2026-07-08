@@ -27,7 +27,7 @@ _CPU_POLICY_GLOB = "/sys/devices/system/cpu/cpufreq/policy*"
 
 # Throttle above this CPU temperature (°C); resume below RESUME_C.
 # Overridable via env for testing on cool hardware.
-THROTTLE_C = float(os.environ.get("THERMAL_THROTTLE_C", 60.0))
+THROTTLE_C = float(os.environ.get("THERMAL_THROTTLE_C", 65.0))
 RESUME_C = float(os.environ.get("THERMAL_RESUME_C", THROTTLE_C - 5.0))
 CHECK_INTERVAL_S = 10.0
 I2C_SLAVE = 0x0703
