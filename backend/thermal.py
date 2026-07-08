@@ -32,13 +32,6 @@ X1201_VCELL_REG = 0x02
 # VCELL LSB in volts (MAX1704x: 78.125 µV). Works for both MAX17040 and
 # MAX17048 — the /16 vs ×16 scale difference cancels to the same value.
 X1201_VCELL_LSB_V = 78.125e-6
-# Percentage is derived from cell voltage (not the gauge's SOC register), to
-# match the board's own voltage-based LED bars — its ModelGauge SOC reads
-# markedly different (higher SOC than the LEDs show). Linear map between a
-# near-empty and full single-cell Li-ion voltage; sags under load exactly like
-# the LEDs do. Tune these if the number drifts from the bars.
-BATTERY_EMPTY_V = 3.3
-BATTERY_FULL_V = 4.2
 
 # Charging detection. This fuel gauge exposes no charge flag (its CRATE
 # register is unimplemented), so charging is inferred from the cell-voltage
@@ -148,14 +141,27 @@ def _read_x1201_voltage() -> float | None:
 
 
 def _read_x1201_battery_level() -> int | None:
-    """Battery % from the X1201 cell voltage (not the gauge's SOC register),
-    mapped linearly across BATTERY_EMPTY_V..BATTERY_FULL_V so it tracks the
-    board's voltage-based LED bars. None if the UPS isn't present."""
-    volts = _read_x1201_voltage()
-    if volts is None:
+    """Battery % from the X1201 fuel gauge's ModelGauge SOC register (0x04).
+
+    This is the most accurate reading the hardware offers: SOC compensates for
+    the nonlinear discharge curve, load sag, and charge-voltage elevation that
+    fool any voltage-only estimate (e.g. at 4.17 V mid-charge the cell reads
+    ~97% by voltage but is really ~79% full — SOC gets this right). It does
+    NOT match the board's cruder voltage-based LED bars. None if absent.
+    """
+    try:
+        import fcntl
+
+        with open(X1201_I2C_BUS, "r+b", buffering=0) as bus:
+            fcntl.ioctl(bus, I2C_SLAVE, X1201_FUEL_GAUGE_ADDR)
+            bus.write(bytes([X1201_CAPACITY_REG]))
+            data = bus.read(2)
+    except OSError:
         return None
-    fraction = (volts - BATTERY_EMPTY_V) / (BATTERY_FULL_V - BATTERY_EMPTY_V)
-    return max(0, min(100, round(fraction * 100)))
+    if len(data) != 2:
+        return None
+    # SOC is an 8.8 fixed-point percentage, big-endian.
+    return max(0, min(100, round(((data[0] << 8) | data[1]) / 256.0)))
 
 
 class ThermalMonitor:
