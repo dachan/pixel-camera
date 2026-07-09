@@ -17,21 +17,36 @@ const FOCUS_RING_MS = 900;
 // 9:16 at 90/270. Kept in sync with RealCamera/MockCamera WIDTH/HEIGHT.
 const STREAM_ASPECT = 16 / 9;
 
-// Largest {width, height} (px) that fits inside `container` at `aspect`
-// (width/height), so the viewfinder box exactly matches the displayed
-// image with no letterboxing or leftover space in either axis.
-function fitToAspect(
+// Must match the frame's border-4 (px). The border uses box-sizing:
+// border-box, so it eats into the box's content area — where the <img>
+// with object-contain actually lives. Fitting the aspect ratio to the
+// content area (see fitFrameToAspect) instead of the full bordered box
+// keeps that interior exactly on-ratio, so object-contain never has to
+// letterbox a few px inside its own frame.
+const FRAME_BORDER_PX = 4;
+
+// Largest {width, height} (px), including the border, so the box's
+// content area (after subtracting the border) exactly fits `container`
+// at `aspect` — no leftover space, and no letterboxing inside the border
+// from an off-ratio content area.
+function fitFrameToAspect(
   container: { width: number; height: number },
   aspect: number,
 ): { width: number; height: number } {
-  if (container.width <= 0 || container.height <= 0) {
+  const inset = FRAME_BORDER_PX * 2;
+  const content = {
+    width: Math.max(0, container.width - inset),
+    height: Math.max(0, container.height - inset),
+  };
+  if (content.width <= 0 || content.height <= 0) {
     return { width: 0, height: 0 };
   }
-  const widthAtFullHeight = container.height * aspect;
-  if (widthAtFullHeight <= container.width) {
-    return { width: widthAtFullHeight, height: container.height };
-  }
-  return { width: container.width, height: container.width / aspect };
+  const widthAtFullHeight = content.height * aspect;
+  const fitted =
+    widthAtFullHeight <= content.width
+      ? { width: widthAtFullHeight, height: content.height }
+      : { width: content.width, height: content.width / aspect };
+  return { width: fitted.width + inset, height: fitted.height + inset };
 }
 
 type CaptureSession = {
@@ -152,7 +167,7 @@ export function CameraPreview({ showGrid = false }: { showGrid?: boolean }) {
   // displayed image with no letterboxing or leftover space.
   const portrait = rotation === 90 || rotation === 270;
   const aspect = portrait ? 1 / STREAM_ASPECT : STREAM_ASPECT;
-  const box = fitToAspect(containerSize, aspect);
+  const box = fitFrameToAspect(containerSize, aspect);
 
   return (
     <div
