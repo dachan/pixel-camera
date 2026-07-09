@@ -19,4 +19,5 @@ deploy.env
 frontend/AGENTS.md
 frontend/CLAUDE.md
 backend/settings.json
+backend/battery_log.json
 .claude/

@@ -17,14 +17,16 @@ _DEFAULT_PATH = os.path.join(
 
 
 class SettingsStore:
-    """Load/save a settings dict. Path overridable with SETTINGS_PATH.
+    """Load/save a dict as JSON. Generic — used for camera settings and for
+    other small bits of persisted state (e.g. the battery min/max log).
 
-    The default sits next to the backend code (i.e. ~/ir-cam/settings.json on
+    Path resolution: explicit ``path`` arg, else ``SETTINGS_PATH`` env var,
+    else a default next to the backend code (i.e. ~/ir-cam/settings.json on
     the Pi), which deploys exclude so per-device state survives redeploys.
     """
 
-    def __init__(self):
-        self.path = os.environ.get("SETTINGS_PATH") or _DEFAULT_PATH
+    def __init__(self, path: str | None = None):
+        self.path = path or os.environ.get("SETTINGS_PATH") or _DEFAULT_PATH
 
     def load(self) -> dict | None:
         try:

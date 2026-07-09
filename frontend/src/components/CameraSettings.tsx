@@ -12,6 +12,7 @@ import {
   setTuning as saveTuning,
   systemTemperature,
   setThrottleEnabled,
+  resetBatteryLog,
   deleteAllCaptures,
   exitKiosk,
   type CameraTuning,
@@ -36,6 +37,17 @@ const FORMATS: { value: CaptureFormatValue; label: string; hint: string }[] = [
   { value: "jpeg", label: "JPEG", hint: "Compressed photo only." },
   { value: "raw", label: "RAW", hint: "DNG raw only — not shown in Gallery." },
 ];
+
+// Relative time for the battery min/max log ("2h 15m ago").
+function formatAgo(unixSeconds: number): string {
+  const deltaS = Date.now() / 1000 - unixSeconds;
+  if (deltaS < 60) return "just now";
+  const mins = Math.floor(deltaS / 60);
+  if (mins < 60) return `${mins}m ago`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours}h ${mins % 60}m ago`;
+  return `${Math.floor(hours / 24)}d ago`;
+}
 
 export default function CameraSettings({
   showGrid,
@@ -119,6 +131,15 @@ export default function CameraSettings({
       .finally(() => setTuningBusy(false));
   }
 
+  const [resettingLog, setResettingLog] = useState(false);
+  function onResetBatteryLog() {
+    setResettingLog(true);
+    resetBatteryLog()
+      .then(() => systemTemperature().then(setThermal))
+      .catch((e) => setError(errorMessage(e)))
+      .finally(() => setResettingLog(false));
+  }
+
   // Two-tap confirm so a stray touch doesn't drop out of the kiosk.
   const [confirmingExit, setConfirmingExit] = useState(false);
   function onExitClick() {
@@ -149,6 +170,54 @@ export default function CameraSettings({
   return (
     <DragScrollArea>
       <div className="flex flex-col gap-6">
+        {thermal?.battery_volts !== null && thermal?.battery_volts !== undefined && (
+          <section className="flex flex-col gap-2">
+            <div className="flex flex-col gap-1">
+              <h2 className="text-sm font-bold text-stone-500">Battery</h2>
+              <p className="text-sm text-stone-500">
+                Lowest/highest cell voltage ever seen, tracked since{" "}
+                {thermal.battery_min
+                  ? formatAgo(thermal.battery_min.at)
+                  : "just now"}{" "}
+                — shows whether it ever recovers or just sits low.
+              </p>
+            </div>
+            <div className="flex flex-col gap-1 border border-gray-300 p-3 text-sm">
+              <div className="flex justify-between">
+                <span className="text-stone-500">Now</span>
+                <span className="font-mono font-bold text-stone-100">
+                  {thermal.battery_volts.toFixed(2)}V ({thermal.battery_level}
+                  %)
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-stone-500">Lowest</span>
+                <span className="font-mono text-stone-300">
+                  {thermal.battery_min
+                    ? `${thermal.battery_min.volts.toFixed(2)}V (${thermal.battery_min.percent}%) · ${formatAgo(thermal.battery_min.at)}`
+                    : "—"}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-stone-500">Highest</span>
+                <span className="font-mono text-stone-300">
+                  {thermal.battery_max
+                    ? `${thermal.battery_max.volts.toFixed(2)}V (${thermal.battery_max.percent}%) · ${formatAgo(thermal.battery_max.at)}`
+                    : "—"}
+                </span>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={onResetBatteryLog}
+              disabled={resettingLog}
+              className="self-start border border-gray-300 px-3 py-1.5 text-xs font-bold text-stone-400 transition hover:border-stone-500 hover:text-white disabled:opacity-50"
+            >
+              {resettingLog ? "Resetting…" : "Reset log"}
+            </button>
+          </section>
+        )}
+
         {thermal && (
           <section className="flex flex-col gap-2">
             <SettingToggle

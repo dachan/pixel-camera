@@ -265,10 +265,23 @@ export function setFormat(
 // Identical readings are de-duplicated server-side.
 export type SystemTemperatures = Record<string, number>;
 
+// A logged battery extreme: the voltage/percent seen, and when (unix
+// seconds). Null if that extreme hasn't been observed yet.
+export type BatteryExtreme = {
+  volts: number;
+  percent: number;
+  at: number;
+} | null;
+
 export type SystemThermal = {
   battery_level: number | null;
   // Cell voltage (V), for cross-checking against the board's LED bars.
   battery_volts: number | null;
+  // Lowest/highest cell voltage ever observed, persisted across restarts —
+  // shows whether the battery ever recovers to a healthy voltage or just
+  // sits low, which a single instantaneous reading can't tell you.
+  battery_min: BatteryExtreme;
+  battery_max: BatteryExtreme;
   // True while charging, false on battery, null until known. Inferred from
   // the voltage trend (the fuel gauge has no charge flag).
   charging: boolean | null;
@@ -289,6 +302,11 @@ export function setThrottleEnabled(
   enabled: boolean,
 ): Promise<{ enabled: boolean; throttled: boolean }> {
   return postJson("/system/throttle", "set throttle", { enabled });
+}
+
+// Clear the persisted battery min/max log (e.g. after swapping cells).
+export function resetBatteryLog(): Promise<{ status: string }> {
+  return postJson("/system/battery-log/reset", "reset battery log");
 }
 
 // Close the kiosk browser and drop to the Pi desktop. The request often won't

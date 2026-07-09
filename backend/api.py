@@ -243,6 +243,17 @@ def camera_tuning():
 
 # --- System ------------------------------------------------------------------- #
 
+def _battery_extreme(volts, at):
+    """{volts, percent, at} for a logged min/max, or None if not seen yet."""
+    if volts is None:
+        return None
+    return {
+        "volts": round(volts, 2),
+        "percent": thermal_config.voltage_to_percent(volts),
+        "at": at,
+    }
+
+
 @api.route("/system/temperature")
 def system_temperature():
     """Pi temperatures plus the app's thermal-throttle state."""
@@ -250,6 +261,11 @@ def system_temperature():
     return jsonify(
         battery_level=thermal_config.read_battery_level(),
         battery_volts=round(volts, 2) if volts is not None else None,
+        # Lowest/highest cell voltage ever observed (persisted across
+        # restarts) — a single instantaneous reading can't show whether the
+        # battery ever recovers to a healthy voltage or just sits low.
+        battery_min=_battery_extreme(thermal.battery_min_v, thermal.battery_min_at),
+        battery_max=_battery_extreme(thermal.battery_max_v, thermal.battery_max_at),
         charging=thermal.charging,
         temperatures=thermal_config.read_temperatures(),
         throttled=thermal.throttled,
@@ -266,6 +282,13 @@ def system_throttle():
         camera.set_throttle_enabled(enabled)  # persists the choice
         thermal.set_enabled(enabled)          # acts on it (lifts if active)
     return jsonify(enabled=thermal.enabled, throttled=thermal.throttled)
+
+
+@api.route("/system/battery-log/reset", methods=["POST"])
+def reset_battery_log():
+    """Clear the persisted battery min/max (e.g. after swapping cells)."""
+    thermal.reset_battery_log()
+    return jsonify(status="reset")
 
 
 @api.route("/system/exit-kiosk", methods=["POST"])

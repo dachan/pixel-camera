@@ -18,6 +18,15 @@ import threading
 import time
 from collections import deque
 
+from settings_store import SettingsStore
+
+# Persisted lowest/highest cell voltage ever observed (see ThermalMonitor),
+# next to the backend code like settings.json — excluded from deploys so it
+# survives redeploys.
+_BATTERY_LOG_PATH = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), "battery_log.json"
+)
+
 logger = logging.getLogger(__name__)
 
 # CPU frequency policies (Pi 5: all cores share one clock, but glob covers any
@@ -55,7 +64,7 @@ _OCV_CURVE_V_PCT: tuple[tuple[float, int], ...] = (
 )
 
 
-def _voltage_to_percent(volts: float) -> int:
+def voltage_to_percent(volts: float) -> int:
     """Map a cell voltage to 0..100% via piecewise-linear interpolation over
     _OCV_CURVE_V_PCT, clamped at the table's ends.
 
@@ -127,7 +136,10 @@ def read_temperatures() -> dict[str, float]:
 
 
 def read_battery_level() -> int | None:
-    """Read a battery/UPS percentage from Linux power-supply sysfs, if present."""
+    """Battery percentage: Linux power-supply sysfs ``capacity`` if present
+    (authoritative when available), else derived from cell voltage via the
+    standard Li-ion OCV curve (see read_battery_voltage, voltage_to_percent).
+    """
     for supply in sorted(glob.glob("/sys/class/power_supply/*")):
         try:
             with open(os.path.join(supply, "type")) as f:
@@ -141,20 +153,18 @@ def read_battery_level() -> int | None:
                 return max(0, min(100, int(f.read().strip())))
         except (OSError, ValueError):
             continue
-    level = _read_x1201_battery_level()
-    if level is not None:
-        return level
-    if os.environ.get("CAMERA") != "real":
-        wobble = math.sin(time.time() * 0.08) * 0.5 + 0.5  # 0..1
-        return round(72 + wobble * 24)
-    return None
+    volts = read_battery_voltage()
+    return voltage_to_percent(volts) if volts is not None else None
 
 
 def read_battery_voltage() -> float | None:
     """Battery cell voltage in volts, or None if no battery/UPS is present.
 
     Prefers a Linux power-supply ``voltage_now`` (µV), falling back to the
-    Geekworm X1201 fuel gauge over I2C.
+    Geekworm X1201 fuel gauge over I2C. Off-Pi (e.g. Mac dev, no I2C bus) a
+    slow sweep across the full 3.0-4.2V range is synthesized so charging
+    detection and the min/max log are visible and testable without hardware,
+    mirroring MockCamera's synthesized metadata.
     """
     for supply in sorted(glob.glob("/sys/class/power_supply/*")):
         try:
@@ -165,7 +175,13 @@ def read_battery_voltage() -> float | None:
                 return int(f.read().strip()) / 1_000_000.0
         except (OSError, ValueError):
             continue
-    return _read_x1201_voltage()
+    volts = _read_x1201_voltage()
+    if volts is not None:
+        return volts
+    if os.environ.get("CAMERA") != "real":
+        wobble = math.sin(time.time() * 0.017) * 0.5 + 0.5  # 0..1, ~6min period
+        return round(3.0 + wobble * 1.2, 3)
+    return None
 
 
 def _read_x1201_voltage() -> float | None:
@@ -182,22 +198,6 @@ def _read_x1201_voltage() -> float | None:
     if len(data) != 2:
         return None
     return ((data[0] << 8) | data[1]) * X1201_VCELL_LSB_V
-
-
-def _read_x1201_battery_level() -> int | None:
-    """Battery % from the X1201 cell voltage, via the standard Li-ion OCV
-    curve (_OCV_CURVE_V_PCT) rather than the gauge's own SOC register.
-
-    Verified on hardware that the chip's SOC can't be trusted for this
-    battery: a QuickStart reset (which forces an immediate OCV-based
-    recalculation) changed nothing, and it read ~0% while the Pi kept
-    running normally — internally consistent, but not reflecting real
-    remaining capacity. None if the UPS isn't present.
-    """
-    volts = _read_x1201_voltage()
-    if volts is None:
-        return None
-    return _voltage_to_percent(volts)
 
 
 def _cpu_freq_bounds() -> tuple[int, int] | None:
@@ -245,6 +245,15 @@ class ThermalMonitor:
         # None until the first battery reading; then True/False (charging).
         self.charging = None
         self._volts = deque()  # (monotonic_time, volts) over CHARGE_WINDOW_S
+        # Persisted battery min/max (see _update_battery_extremes). Loaded
+        # once here so a restart doesn't lose a low reading taken earlier.
+        self._battery_log = SettingsStore(_BATTERY_LOG_PATH)
+        log = self._battery_log.load() or {}
+        self.battery_min_v: float | None = log.get("min_v")
+        self.battery_min_at: float | None = log.get("min_at")
+        self.battery_max_v: float | None = log.get("max_v")
+        self.battery_max_at: float | None = log.get("max_at")
+        self.battery_first_at: float | None = log.get("first_at")
         self._on_throttle = on_throttle
         self._on_resume = on_resume
         thread = threading.Thread(
@@ -252,11 +261,40 @@ class ThermalMonitor:
         )
         thread.start()
 
-    def _update_charging(self) -> None:
-        """Infer charging from the cell-voltage trend (see CHARGE_* consts)."""
+    def _update_battery(self) -> None:
+        """Sample battery voltage once per tick, feeding both the charging
+        trend detector and the persisted min/max log."""
         volts = read_battery_voltage()
         if volts is None:
             return
+        self._update_battery_extremes(volts)
+        self._update_charging(volts)
+
+    def _update_battery_extremes(self, volts: float) -> None:
+        """Track the lowest/highest cell voltage ever observed, persisted to
+        disk so it survives a service restart (deploys restart it often,
+        which would otherwise lose a low reading taken mid-session) — the
+        real range a single instantaneous reading can't show, e.g. whether
+        the cell ever recovers to a healthy voltage or just sits low
+        (suggesting a genuinely depleted or failing battery)."""
+        now = time.time()
+        changed = self.battery_first_at is None
+        self.battery_first_at = self.battery_first_at or now
+        if self.battery_min_v is None or volts < self.battery_min_v:
+            self.battery_min_v, self.battery_min_at = volts, now
+            changed = True
+        if self.battery_max_v is None or volts > self.battery_max_v:
+            self.battery_max_v, self.battery_max_at = volts, now
+            changed = True
+        if changed:
+            self._battery_log.save({
+                "min_v": self.battery_min_v, "min_at": self.battery_min_at,
+                "max_v": self.battery_max_v, "max_at": self.battery_max_at,
+                "first_at": self.battery_first_at,
+            })
+
+    def _update_charging(self, volts: float) -> None:
+        """Infer charging from the cell-voltage trend (see CHARGE_* consts)."""
         now = time.monotonic()
         self._volts.append((now, volts))
         while self._volts and now - self._volts[0][0] > CHARGE_WINDOW_S:
@@ -288,10 +326,17 @@ class ThermalMonitor:
             logger.warning("thermal throttling disabled: resuming full rate")
             self._safely(self._on_resume)
 
+    def reset_battery_log(self) -> None:
+        """Clear the persisted battery min/max (e.g. after swapping cells)."""
+        self.battery_min_v = self.battery_min_at = None
+        self.battery_max_v = self.battery_max_at = None
+        self.battery_first_at = None
+        self._battery_log.save({})
+
     def _run(self):
         while True:
             try:
-                self._update_charging()  # runs regardless of throttle setting
+                self._update_battery()  # runs regardless of throttle setting
                 temps = read_temperatures() if self.enabled else None
                 temp = max(temps.values()) if temps else None
                 if temp is not None:

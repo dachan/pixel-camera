@@ -38,6 +38,7 @@ rsync -az --delete \
   --exclude '.venv' \
   --exclude 'captures' \
   --exclude 'settings.json' \
+  --exclude 'battery_log.json' \
   --exclude '__pycache__' \
   --exclude 'frontend' \
   backend/ "${PI_TARGET}:${PI_DIR}/"
