@@ -46,7 +46,7 @@ export default function CameraTabs() {
         {active === "camera" ? (
           <div className="flex size-full gap-4">
             <div className="flex min-h-0 w-2/3 flex-col gap-4">
-              <div className="flex min-h-0 flex-1 items-center justify-center">
+              <div className="flex min-h-0 flex-1 items-start justify-center">
                 <CameraPreview showGrid={showGrid} />
               </div>
               <div className="shrink-0">
