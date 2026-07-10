@@ -1,8 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { getFocus, setFocus, type FocusState } from "@/lib/camera-api";
-import { usePolling } from "@/lib/use-polling";
+import { setFocus } from "@/lib/camera-api";
+import { useFocus, useSetFocus } from "@/lib/focus-context";
 import Tabs from "@/components/_shared/Tabs";
 import VerticalSlider, {
   VerticalSliderInput,
@@ -14,22 +13,8 @@ const MODE_TABS = [
 ] as const;
 
 export default function FocusControls() {
-  const [focus, setFocusState] = useState<FocusState | null>(null);
-
-  useEffect(() => {
-    getFocus()
-      .then(setFocusState)
-      .catch(() => {});
-  }, []);
-
-  usePolling(
-    () => {
-      getFocus()
-        .then(setFocusState)
-        .catch(() => {});
-    },
-    1500,
-  );
+  const focus = useFocus();
+  const setFocusState = useSetFocus();
 
   function applyFocus(patch: {
     af_mode?: "continuous" | "manual";

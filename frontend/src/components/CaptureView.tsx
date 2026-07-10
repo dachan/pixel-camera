@@ -5,10 +5,10 @@ import {
   previewUrl,
   getOrientation,
   captureEventsUrl,
-  getFocus,
   focusAtPoint,
 } from "@/lib/camera-api";
 import { useElementSize } from "@/lib/use-element-size";
+import { useFocus } from "@/lib/focus-context";
 
 const FLASH_MS = 600;
 const FOCUS_RING_MS = 900;
@@ -65,10 +65,10 @@ export function CameraPreview({ showGrid = false }: { showGrid?: boolean }) {
   // Sensor rotation drives the preview box aspect: landscape at 0/180,
   // portrait at 90/270 (the streamed frame is rotated server-side to match).
   const [rotation, setRotation] = useState(0);
-  // Tap-to-focus: null = availability unknown (fetch pending or failed).
-  // Only a definitive false disables taps — otherwise a fetch that happens
-  // to land during a service restart would kill tap-to-focus until remount.
-  const [focusAvailable, setFocusAvailable] = useState<boolean | null>(null);
+  // Live focus state (shared poll — see focus-context): drives both
+  // tap-to-focus availability and the manual-focus peaking overlay below.
+  const focus = useFocus();
+  const focusAvailable = focus?.available ?? null;
   const [focusRing, setFocusRing] = useState<{
     x: number;
     y: number;
@@ -91,9 +91,6 @@ export function CameraPreview({ showGrid = false }: { showGrid?: boolean }) {
   useEffect(() => {
     getOrientation()
       .then((o) => setRotation(o.rotation))
-      .catch(() => {});
-    getFocus()
-      .then((f) => setFocusAvailable(f.available))
       .catch(() => {});
   }, []);
 
@@ -209,6 +206,22 @@ export function CameraPreview({ showGrid = false }: { showGrid?: boolean }) {
             className="pointer-events-none absolute inset-0 h-full w-full object-contain"
           />
         )}
+        {focus?.af_mode === "manual" && (
+          // Focus peaking: an edge-detect + threshold SVG filter (defined
+          // below) applied to a second copy of the same stream, screen-
+          // blended over the base image so only strong edges add a bright
+          // highlight — the rest of the filtered layer is black and
+          // contributes nothing. GPU-composited by Chromium, so this adds
+          // no backend encode cost (same MJPEG stream broadcast to a second
+          // listener) and negligible client cost.
+          <img
+            src={streamSrc}
+            alt=""
+            aria-hidden
+            className="pointer-events-none absolute inset-0 h-full w-full object-contain mix-blend-screen"
+            style={{ filter: "url(#focus-peaking)" }}
+          />
+        )}
         {showGrid && (
           <div aria-hidden className="pointer-events-none absolute inset-0">
             <div className="absolute inset-y-0 left-1/3 w-px bg-white/40" />
@@ -239,6 +252,48 @@ export function CameraPreview({ showGrid = false }: { showGrid?: boolean }) {
           />
         )}
       </div>
+
+      {/* Focus-peaking filter chain (see the peaking <img> above): grayscale
+          -> Laplacian edge detect -> threshold (suppress weak/noise edges,
+          keep strong in-focus ones) -> tint red so peaked edges read clearly
+          against any scene colour, including this NoIR camera's palette. */}
+      <svg width="0" height="0" className="absolute" aria-hidden>
+        <defs>
+          <filter id="focus-peaking" colorInterpolationFilters="sRGB">
+            <feColorMatrix
+              type="matrix"
+              values="0.33 0.33 0.33 0 0
+                      0.33 0.33 0.33 0 0
+                      0.33 0.33 0.33 0 0
+                      0    0    0    1 0"
+              result="gray"
+            />
+            <feConvolveMatrix
+              in="gray"
+              order="3"
+              kernelMatrix="-1 -1 -1 -1 8 -1 -1 -1 -1"
+              divisor="1"
+              bias="0"
+              edgeMode="duplicate"
+              preserveAlpha="true"
+              result="edges"
+            />
+            <feComponentTransfer in="edges" result="thresholded">
+              <feFuncR type="linear" slope="4" intercept="-0.7" />
+              <feFuncG type="linear" slope="4" intercept="-0.7" />
+              <feFuncB type="linear" slope="4" intercept="-0.7" />
+            </feComponentTransfer>
+            <feColorMatrix
+              in="thresholded"
+              type="matrix"
+              values="1 1 1 0 0
+                      0 0 0 0 0
+                      0 0 0 0 0
+                      0.33 0.33 0.33 0 0"
+            />
+          </filter>
+        </defs>
+      </svg>
     </div>
   );
 }
