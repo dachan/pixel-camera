@@ -30,14 +30,6 @@ Code only ever flows **Mac → Pi**. The Pi is a runtime, not a dev box.
 - **Kiosk niceties** — boots straight into the app, auto-reloads after a deploy,
   and a one-shot "exit to desktop" that reboots into the plain desktop once.
 
-> **This repo is public / open-source.** Write everything — code, comments,
-> commit messages, docs, scripts — assuming it will be read by strangers. No
-> secrets, credentials, tokens, or private keys in tracked files; no personal
-> hostnames, usernames, IP addresses, emails, or absolute home paths. Use
-> generic placeholders (`pi@raspberrypi.local`, `/home/<user>/…`) and keep your
-> real values in the gitignored `deploy.env`. Prefer config/env vars over
-> hardcoding anything machine-specific.
-
 ## Architecture
 
 ```
