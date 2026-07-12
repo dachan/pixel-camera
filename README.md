@@ -67,17 +67,13 @@ pi-xel/
 - `picamera2` is imported lazily inside `RealCamera.__init__` and is **not** in
   `requirements.txt`; on the Pi it comes from apt via a `--system-site-packages`
   venv. This is what lets the backend import cleanly on the Mac.
-- A physical shutter button is optional: when `CAMERA=real`, `camera_service.py`
-  starts an `lgpio`-based listener (`backend/shutter_button.py`) on GPIO17 (BCM, override
-  with `SHUTTER_GPIO_PIN`) that triggers the same capture path as the UI. Wire
-  a momentary push button between that pin and GND — no resistor needed, it
-  uses the Pi's internal pull-up. Talks to `lgpio` directly rather than via
-  `gpiozero`: on Pi 5 (RP1), `gpiozero`'s pull-up request silently doesn't take
-  effect, verified with `pinctrl`/`gpioinfo`. Like picamera2, `lgpio` is
-  imported lazily and comes from apt, not `requirements.txt`.
-- In production Flask serves the static export from `frontend/out`, so the kiosk
-  is single-origin (relative `/api`). In dev the frontend runs on :3000 and
-  talks cross-origin to Flask on :5000 (flask-cors handles it).
+- Optional physical shutter button: with `CAMERA=real`, a momentary button
+  between GPIO17 (BCM, override with `SHUTTER_GPIO_PIN`) and GND triggers the
+  same capture path as the UI. Uses `lgpio` directly, not `gpiozero`, whose
+  pull-up silently no-ops on the Pi 5.
+- In production Flask serves the static export from `frontend/out` (single-origin,
+  relative `/api`). In dev the frontend runs on :3000 cross-origin to Flask on
+  :5000 (flask-cors handles it).
 
 ## Dev setup (Mac)
 
@@ -125,19 +121,13 @@ Then deploy anytime:
 ./scripts/deploy.sh
 ```
 
-This builds the static export with an **empty** API base (relative `/api`),
-rsyncs `backend/` + `frontend/out/` to the Pi (`~/ir-cam/` by default), installs
-deps in the Pi venv, and restarts the API service. It also installs the kiosk
-launcher + labwc autostart (see below). The running kiosk **auto-reloads**
-within a few seconds of each deploy — no manual refresh or reboot needed for
-frontend changes — because the frontend polls a per-process token from
-`/api/health` and reloads when the service restart bumps it.
+This builds the static export (relative `/api`), rsyncs `backend/` +
+`frontend/out/` to the Pi, installs deps, restarts the API service, and installs
+the kiosk autostart (see below). The running kiosk **auto-reloads** within a few
+seconds — no manual refresh needed for frontend changes.
 
-Host/user/path come from `deploy.env` (copy `deploy.env.example` to `deploy.env`
-and edit it — it's gitignored), or from matching environment variables. Defaults
-target a stock Raspberry Pi OS setup (`pi@raspberrypi.local`). The systemd unit
-is rendered from `_deploy/ircam-api.service.tpl` using the same values, so the
-deployed service always matches your config.
+Host/user/path come from `deploy.env` (gitignored) or matching env vars,
+defaulting to a stock Raspberry Pi OS setup (`pi@raspberrypi.local`, `~/ir-cam/`).
 
 ## Pi setup (run on the Pi, once)
 
@@ -157,23 +147,13 @@ python3 -m venv --system-site-packages .venv
 
 ### systemd API service
 
-`scripts/deploy.sh` **installs and enables the service automatically** the first
-time it runs (and restarts it on every deploy after). So normally you don't need
-to do anything here — just verify after a deploy:
+`deploy.sh` installs and enables the service on first run (and restarts it on
+every deploy after), relying on the deploy user's passwordless `sudo` (the
+Raspberry Pi OS default). Verify after a deploy:
 
 ```bash
-systemctl status ircam-api.service          # should be active (running)
+systemctl status ircam-api.service          # active (running)
 curl -s localhost:5000/api/health           # {"status":"ok"}
-```
-
-This relies on the deploy user having passwordless `sudo` (the Raspberry Pi OS
-default for the setup user). If `sudo` prompts for a password, install it
-manually once instead:
-
-```bash
-sudo cp ~/ir-cam/ircam-api.service /etc/systemd/system/ircam-api.service
-sudo systemctl daemon-reload
-sudo systemctl enable --now ircam-api.service
 ```
 
 ### Kiosk mode (boots into the app)
@@ -207,18 +187,7 @@ on the network.
 
 ## Pi cheat-sheet (from the Mac)
 
-All commands run from the Mac. Replace `pi@raspberrypi.local` with your Pi's
-user and host (the same values you set in `deploy.env`). They're password-free
-once you've set up SSH keys one time:
-
-```bash
-ssh-copy-id pi@raspberrypi.local    # one-time; last time you'll type the Pi password
-```
-
-**SSH into the Pi:**
-```bash
-ssh pi@raspberrypi.local
-```
+Replace `pi@raspberrypi.local` with your Pi's user/host.
 
 **Copy captures to the Mac** (dated folder in Downloads; pulls JPEG + RAW DNG):
 ```bash
