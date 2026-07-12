@@ -1,4 +1,4 @@
-# pi-xel — Raspberry Pi camera control app
+# Pixel UI — Raspberry Pi camera control app
 
 A single-device camera UI: a **Next.js** (static-export) frontend and a
 **Flask + picamera2** backend. Develop on a Mac against a mock camera, then
