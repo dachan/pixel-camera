@@ -22,7 +22,7 @@ export default function CaptureGallery() {
 
   if (error) {
     return (
-      <p className="flex h-full items-center justify-center text-sm text-red-500">
+      <p className="flex size-full items-center justify-center text-center text-sm text-red-500">
         Captures unavailable: {error}
       </p>
     );
@@ -30,7 +30,7 @@ export default function CaptureGallery() {
 
   if (loading) {
     return (
-      <p className="flex h-full items-center justify-center text-sm text-zinc-500">
+      <p className="flex size-full items-center justify-center text-center text-sm text-zinc-500">
         Loading captures…
       </p>
     );
@@ -38,7 +38,7 @@ export default function CaptureGallery() {
 
   if (captures.length === 0) {
     return (
-      <p className="flex h-full items-center justify-center text-sm text-zinc-500">
+      <p className="flex size-full items-center justify-center text-center text-sm text-zinc-500">
         No captures yet. Use the Capture button on the Camera tab.
       </p>
     );
