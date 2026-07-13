@@ -83,6 +83,44 @@ def preview():
     )
 
 
+@api.route("/stream")
+def stream_page():
+    """Full-bleed HTML page wrapping the MJPEG preview in an <img>.
+
+    OBS's Browser Source (and any browser) loads a *page*, not a raw
+    multipart/x-mixed-replace response, so pointing it straight at /api/preview
+    renders nothing. This page is the copy-paste URL for OBS: black background,
+    the stream scaled to fit, and an onerror reconnect so a Pi restart or the
+    brief encoder detach during a capture doesn't leave a dead frame.
+    """
+    html = """<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Pixel UI stream</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #000; overflow: hidden; }
+  img { width: 100%; height: 100%; object-fit: contain; display: block; }
+</style>
+</head>
+<body>
+<img id="s" src="/api/preview" alt="">
+<script>
+  // MJPEG streams end (Pi restart, capture-time encoder detach, network
+  // blip). Reconnect with a cache-busted URL so the browser reopens it.
+  var img = document.getElementById("s");
+  img.onerror = function () {
+    setTimeout(function () {
+      img.src = "/api/preview?t=" + Date.now();
+    }, 1000);
+  };
+</script>
+</body>
+</html>
+"""
+    return Response(html, mimetype="text/html")
+
+
 @api.route("/capture", methods=["POST"])
 def capture():
     result = do_capture()
