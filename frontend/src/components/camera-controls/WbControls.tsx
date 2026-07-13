@@ -13,14 +13,13 @@ import {
 import { usePolling } from "@/lib/use-polling";
 import Tabs from "@/components/_shared/Tabs";
 
-// Colour-tuning options (NoIR sensors only). "standard" swaps in the filtered
-// variant's tuning so the AWB presets above actually do something — hence it
-// lives here in the WB panel rather than in Settings.
-const TUNINGS: { value: "default" | "standard"; label: string; hint: string }[] =
-  [
-    { value: "default", label: "NoIR", hint: "Native greyworld AWB." },
-    { value: "standard", label: "Standard", hint: "Enables WB presets." },
-  ];
+// Colour-tuning tabs (NoIR sensors only), shown at the top of the WB panel.
+// "standard" swaps in the filtered variant's tuning so the AWB presets work —
+// hence it lives here in the WB panel rather than in Settings.
+const TUNING_TABS = [
+  { id: "default", label: "NoIR" },
+  { id: "standard", label: "Standard" },
+] as const;
 
 // Same Auto/Manual tab pair as Exposure and Focus, so all three panels look
 // consistent — Auto and Manual always sit beside each other, never mixed in
@@ -136,6 +135,16 @@ export default function WbControls() {
 
   return (
     <div className="flex h-full flex-col gap-3 overflow-y-auto">
+      {tuning?.available && (
+        <div className="flex shrink-0 items-center justify-center">
+          <Tabs
+            tabs={TUNING_TABS}
+            active={tuning.tuning}
+            onChange={applyTuning}
+          />
+        </div>
+      )}
+
       <div className="flex shrink-0 items-center justify-center">
         <Tabs
           tabs={MODE_TABS}
@@ -223,42 +232,10 @@ export default function WbControls() {
         </p>
       )}
 
-      {tuning?.available && (
-        <div className="mt-1 flex shrink-0 flex-col gap-2 border-t border-gray-300 pt-3">
-          <span className="text-xs font-semibold text-gray-500">
-            Colour tuning
-          </span>
-          <div className="grid grid-cols-2 gap-2">
-            {TUNINGS.map((option) => {
-              const active = tuning.tuning === option.value;
-              return (
-                <button
-                  key={option.value}
-                  type="button"
-                  onClick={() => applyTuning(option.value)}
-                  disabled={tuningBusy}
-                  className={`flex flex-col gap-0.5 rounded-xl border p-2 text-left transition disabled:opacity-50 ${
-                    active
-                      ? "border-orange-500 bg-orange-500 text-white"
-                      : "border-orange-300 text-orange-500 hover:border-gray-500 hover:text-white"
-                  }`}
-                >
-                  <span className="text-xs font-semibold">{option.label}</span>
-                  <span
-                    className={`text-[10px] ${active ? "text-orange-100" : "text-gray-500"}`}
-                  >
-                    {option.hint}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-          {tuningBusy && (
-            <p className="text-center text-xs text-gray-500">
-              Restarting camera…
-            </p>
-          )}
-        </div>
+      {tuningBusy && (
+        <p className="shrink-0 text-center text-xs text-gray-500">
+          Restarting camera…
+        </p>
       )}
     </div>
   );
