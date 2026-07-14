@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { type SystemThermal } from "@/lib/camera-api";
 import { useThermal } from "@/lib/thermal-context";
 
+const MOCK_TIME = process.env.NODE_ENV === "development" ? "14:00:00" : null;
+
 function formatTime(date: Date): string {
   return date.toLocaleTimeString([], {
     hour: "2-digit",
@@ -44,6 +46,7 @@ export default function StatusRow() {
   const thermal = useThermal();
 
   useEffect(() => {
+    if (MOCK_TIME) return;
     // Seed the clock post-mount: rendering the time during the static-export
     // prerender would make the HTML disagree with the first client render
     // (hydration mismatch), so it starts as "—" and fills in here.
@@ -55,7 +58,10 @@ export default function StatusRow() {
 
   return (
     <div className="flex w-full items-center justify-between bg-cyan-100 px-4 py-2">
-      <StatusItem label="Time" value={now ? formatTime(now) : "—"} />
+      <StatusItem
+        label="Time"
+        value={MOCK_TIME ?? (now ? formatTime(now) : "—")}
+      />
       <StatusItem label="Battery" value={batteryLevel(thermal)} />
       <StatusItem label="Temp" value={currentTemperature(thermal)} />
     </div>

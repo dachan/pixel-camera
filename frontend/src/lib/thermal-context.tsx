@@ -29,7 +29,7 @@ export function ThermalProvider({ children }: { children: ReactNode }) {
   usePolling(() => {
     systemTemperature()
       .then(setThermal)
-      .catch(() => setThermal(null));
+      .catch(() => {});
   }, 2000);
   return (
     <ThermalContext.Provider value={thermal}>

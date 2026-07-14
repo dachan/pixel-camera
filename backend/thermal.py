@@ -11,7 +11,6 @@ from __future__ import annotations
 
 import glob
 import logging
-import math
 import os
 import subprocess
 import threading
@@ -106,9 +105,8 @@ def read_temperatures() -> dict[str, float]:
     Reads every ``/sys/class/thermal/thermal_zone*`` (CPU, and any internal/SoC
     sensors). Identical readings are de-duplicated so a separate "internal" temp
     only appears when it actually differs from the CPU. Off-Pi (e.g. Mac dev,
-    where /sys/class/thermal is absent) a plausible wobbling CPU temperature is
-    synthesized so the panel is visible and testable, mirroring MockCamera's
-    synthesized metadata.
+    where /sys/class/thermal is absent) a fixed CPU temperature is synthesized
+    so the panel is visible and stable for mock demos.
     """
     temps: dict[str, float] = {}
     seen: set[float] = set()
@@ -129,8 +127,7 @@ def read_temperatures() -> dict[str, float]:
         seen.add(celsius)
 
     if not temps and os.environ.get("CAMERA") != "real":
-        wobble = math.sin(time.time() * 0.3) * 0.5 + 0.5  # 0..1
-        temps["cpu-thermal"] = round(45.0 + wobble * 10.0, 1)
+        temps["cpu-thermal"] = 42.0
 
     return temps
 
@@ -170,9 +167,7 @@ def read_battery_voltage() -> float | None:
 
     Prefers a Linux power-supply ``voltage_now`` (µV), falling back to the
     Geekworm X1201 fuel gauge over I2C. Off-Pi (e.g. Mac dev, no I2C bus) a
-    slow sweep across the full 3.0-4.2V range is synthesized so charging
-    detection and the min/max log are visible and testable without hardware,
-    mirroring MockCamera's synthesized metadata.
+    fixed voltage is synthesized so mock demos have stable status values.
     """
     for supply in _battery_supplies():
         try:
@@ -184,8 +179,7 @@ def read_battery_voltage() -> float | None:
     if volts is not None:
         return volts
     if os.environ.get("CAMERA") != "real":
-        wobble = math.sin(time.time() * 0.017) * 0.5 + 0.5  # 0..1, ~6min period
-        return round(3.0 + wobble * 1.2, 3)
+        return 4.02  # Maps to 80% via voltage_to_percent.
     return None
 
 
