@@ -30,7 +30,7 @@ BACKEND_DIR = os.path.dirname(os.path.abspath(__file__))
 def _find_frontend_out():
     """Locate frontend/out across both layouts.
 
-    Mac dev: app.py is in pi-xel/backend/, frontend is a sibling
+    Mac dev: app.py is in pixel-camera/backend/, frontend is a sibling
         -> ../frontend/out
     Pi deploy: backend/* is flattened into ~/ir-cam/, frontend/out is a child
         -> ./frontend/out

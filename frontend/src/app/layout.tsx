@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Pi Camera",
+  title: "Pixel Camera",
   description: "Raspberry Pi camera control",
 };
 

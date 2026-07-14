@@ -1,4 +1,4 @@
-# Pixel UI — Raspberry Pi camera control app
+# Pixel Camera — Raspberry Pi camera control app
 
 A touchscreen camera UI for a Raspberry Pi + camera module: a **Next.js**
 (static-export) frontend and a **Flask + picamera2** backend. Develop on a Mac
@@ -33,7 +33,7 @@ Code only ever flows **Mac → Pi**. The Pi is a runtime, not a dev box.
 ## Architecture
 
 ```
-pi-xel/
+pixel-camera/
 ├── backend/
 │   ├── app.py               # assembly: blueprint + CORS + static catch-all
 │   ├── api.py               # /api routes (JSON + MJPEG preview + SSE events)

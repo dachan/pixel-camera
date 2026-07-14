@@ -97,7 +97,7 @@ def stream_page():
 <html>
 <head>
 <meta charset="utf-8">
-<title>Pixel UI stream</title>
+<title>Pixel Camera stream</title>
 <style>
   html, body { margin: 0; height: 100%; background: #000; overflow: hidden; }
   img { width: 100%; height: 100%; object-fit: contain; display: block; }

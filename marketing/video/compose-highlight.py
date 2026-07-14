@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Compose Pixel UI highlight: 800×480 UI centered on an Apple-style stage."""
+"""Compose Pixel Camera highlight: 800×480 UI centered on an Apple-style stage."""
 
 from __future__ import annotations
 
@@ -166,7 +166,7 @@ def main() -> int:
     title_card(
         ROOT / "title-open.png",
         [
-            ("Pixel UI", 96, (245, 245, 247)),
+            ("Pixel Camera", 96, (245, 245, 247)),
             ("Raspberry Pi camera control", 36, (168, 172, 180)),
         ],
         bg,
@@ -178,7 +178,7 @@ def main() -> int:
     )
     title_card(
         ROOT / "title-close.png",
-        [("Pixel UI", 88, (245, 245, 247))],
+        [("Pixel Camera", 88, (245, 245, 247))],
         bg,
     )
 

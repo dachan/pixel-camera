@@ -1,5 +1,5 @@
 {
-  "name": "pi-xel",
+  "name": "pixel-camera",
   "version": "0.1.0",
   "private": true,
   "description": "Single-device Raspberry Pi camera control app (Flask + Next.js).",
