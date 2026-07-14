@@ -148,6 +148,10 @@ export default function CameraSettings({
   return (
     <DragScrollArea>
       <div className="flex flex-col gap-6">
+        {error && (
+          <p className="text-sm text-red-500">Settings unavailable: {error}</p>
+        )}
+
         {thermal?.battery_volts !== null &&
           thermal?.battery_volts !== undefined && (
             <section className="flex flex-col gap-2 text-stone-500">
@@ -234,32 +238,26 @@ export default function CameraSettings({
             </p>
           </div>
 
-          {error ? (
-            <p className="text-sm text-red-500">
-              Orientation unavailable: {error}
-            </p>
-          ) : (
-            <div className="grid grid-cols-4 gap-2">
-              {ROTATIONS.map((rot) => {
-                const active = rotation === rot;
-                return (
-                  <button
-                    key={rot}
-                    type="button"
-                    onClick={() => apply(rot)}
-                    disabled={rotation === null}
-                    className={`border p-4 text-sm font-semibold transition disabled:opacity-50 ${
-                      active
-                        ? "border-blue-500 bg-blue-600 text-white"
-                        : "border-gray-300 text-stone-300 hover:border-stone-500 hover:text-white"
-                    }`}
-                  >
-                    {rot}°
-                  </button>
-                );
-              })}
-            </div>
-          )}
+          <div className="grid grid-cols-4 gap-2">
+            {ROTATIONS.map((rot) => {
+              const active = rotation === rot;
+              return (
+                <button
+                  key={rot}
+                  type="button"
+                  onClick={() => apply(rot)}
+                  disabled={rotation === null}
+                  className={`border p-4 text-sm font-semibold transition disabled:opacity-50 ${
+                    active
+                      ? "border-blue-500 bg-blue-600 text-white"
+                      : "border-gray-300 text-stone-300 hover:border-stone-500 hover:text-white"
+                  }`}
+                >
+                  {rot}°
+                </button>
+              );
+            })}
+          </div>
         </section>
 
         <section className="flex flex-col gap-2">

@@ -19,7 +19,7 @@ export default function Switch({
     >
       <span
         className={`absolute top-0 h-5 w-5 bg-white transition-all ${
-          checked ? "left-6" : "left-0"
+          checked ? "left-5" : "left-0"
         }`}
       />
     </button>

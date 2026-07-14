@@ -11,7 +11,7 @@ export default function Button({
     <button
       type={type}
       className={[
-        "button-shadow w-full rounded-md bg-orange-500 p-2 font-bold text-white transition hover:bg-orange-600 disabled:opacity-50",
+        "button-shadow w-full rounded-md bg-orange-500 p-2 font-semibold text-white transition hover:bg-orange-600 disabled:opacity-50",
         className,
       ]
         .filter(Boolean)

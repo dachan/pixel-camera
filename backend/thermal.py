@@ -135,25 +135,33 @@ def read_temperatures() -> dict[str, float]:
     return temps
 
 
-def read_battery_level() -> int | None:
-    """Battery percentage: Linux power-supply sysfs ``capacity`` if present
-    (authoritative when available), else derived from cell voltage via the
-    standard Li-ion OCV curve (see read_battery_voltage, voltage_to_percent).
-    """
+def _battery_supplies():
+    """Yield /sys/class/power_supply dirs whose type is battery or UPS."""
     for supply in sorted(glob.glob("/sys/class/power_supply/*")):
         try:
             with open(os.path.join(supply, "type")) as f:
-                supply_type = f.read().strip().lower()
+                if f.read().strip().lower() in {"battery", "ups"}:
+                    yield supply
         except OSError:
-            supply_type = ""
-        if supply_type not in {"battery", "ups"}:
             continue
+
+
+def read_battery_level(volts: float | None = None) -> int | None:
+    """Battery percentage: Linux power-supply sysfs ``capacity`` if present
+    (authoritative when available), else derived from cell voltage via the
+    standard Li-ion OCV curve (see read_battery_voltage, voltage_to_percent).
+
+    Pass ``volts`` if the voltage was just read, to skip a second (I2C)
+    read for the fallback path.
+    """
+    for supply in _battery_supplies():
         try:
             with open(os.path.join(supply, "capacity")) as f:
                 return max(0, min(100, int(f.read().strip())))
         except (OSError, ValueError):
             continue
-    volts = read_battery_voltage()
+    if volts is None:
+        volts = read_battery_voltage()
     return voltage_to_percent(volts) if volts is not None else None
 
 
@@ -166,11 +174,8 @@ def read_battery_voltage() -> float | None:
     detection and the min/max log are visible and testable without hardware,
     mirroring MockCamera's synthesized metadata.
     """
-    for supply in sorted(glob.glob("/sys/class/power_supply/*")):
+    for supply in _battery_supplies():
         try:
-            with open(os.path.join(supply, "type")) as f:
-                if f.read().strip().lower() not in {"battery", "ups"}:
-                    continue
             with open(os.path.join(supply, "voltage_now")) as f:
                 return int(f.read().strip()) / 1_000_000.0
         except (OSError, ValueError):

@@ -197,6 +197,10 @@ class BaseCamera(abc.ABC):
         self._quality = 100
         # Capture format (one of FORMATS).
         self._format = "raw+jpeg"
+        # Exposure intent: auto, or manual ISO + shutter. Like focus/WB below,
+        # this holds the last-set manual values even while in auto, so they
+        # survive a restart (see _settings_snapshot).
+        self._controls = {"auto_exposure": True, "iso": 100, "shutter_us": 10000}
         # Focus intent (only meaningful when focus_available()).
         self._focus = {"af_mode": "continuous", "lens_position": 1.0}
         # Tap-to-focus point in native sensor coords (None = whole scene).
@@ -466,10 +470,10 @@ class BaseCamera(abc.ABC):
     def _settings_snapshot(self) -> dict:
         """Current persistable settings.
 
-        Focus and white balance persist their *intent* dicts, which hold the
-        last-set manual values (lens position, colour gains) even while in
-        continuous/auto — so the camera comes back exactly as it was left,
-        including the last manual settings.
+        Exposure, focus and white balance persist their *intent* dicts, which
+        hold the last-set manual values (ISO/shutter, lens position, colour
+        gains) even while in auto/continuous — so the camera comes back
+        exactly as it was left, including the last manual settings.
         """
         snap = {
             "rotation": self._rotation,
@@ -478,13 +482,10 @@ class BaseCamera(abc.ABC):
             "tuning": self._tuning,
             "throttle_enabled": self._throttle_enabled,
             "white_balance": dict(self._wb),
+            "controls": dict(self._controls),
         }
         if self.focus_available():
             snap["focus"] = dict(self._focus)
-        try:
-            snap["controls"] = self.controls_state()
-        except Exception:
-            pass
         return snap
 
     def _save_settings(self) -> None:
@@ -605,7 +606,9 @@ class BaseCamera(abc.ABC):
         """Return the current per-frame metadata as a flat dict."""
         raise NotImplementedError
 
-    @abc.abstractmethod
+    def _apply_controls(self) -> None:
+        """Push self._controls into the sensor. No-op for the mock."""
+
     def set_controls(self, settings: dict) -> dict:
         """Apply exposure settings to the live camera; return the new state.
 
@@ -614,12 +617,30 @@ class BaseCamera(abc.ABC):
         microseconds). Aperture is intentionally absent — Pi cameras have no
         software-controllable aperture.
         """
-        raise NotImplementedError
+        if settings.get("auto_exposure") is not None:
+            self._controls["auto_exposure"] = bool(settings["auto_exposure"])
+        if settings.get("iso") is not None:
+            self._controls["iso"] = max(100, int(settings["iso"]))
+        if settings.get("shutter_us") is not None:
+            self._controls["shutter_us"] = max(1, int(settings["shutter_us"]))
+        self._apply_controls()
+        self._save_settings()
+        return self.controls_state()
 
-    @abc.abstractmethod
     def controls_state(self) -> dict:
-        """Return the current ``{auto_exposure, iso, shutter_us}`` state."""
-        raise NotImplementedError
+        """Current ``{auto_exposure, iso, shutter_us}`` state.
+
+        In auto mode ``iso``/``shutter_us`` are the live values the AE
+        algorithm chose (from frame metadata), not the stored manual ones.
+        """
+        state = dict(self._controls)
+        if state["auto_exposure"]:
+            iso, shutter = _live_exposure_from_metadata(self.metadata())
+            if iso is not None:
+                state["iso"] = iso
+            if shutter is not None:
+                state["shutter_us"] = shutter
+        return state
 
 
 class MockCamera(BaseCamera):
@@ -633,13 +654,6 @@ class MockCamera(BaseCamera):
     WIDTH = 1280
     HEIGHT = 720
     FPS = 10
-
-    def __init__(self):
-        super().__init__()
-        # Exposure state, mirrored from set_controls so the UI is testable.
-        self._auto_exposure = True
-        self._exposure_us = 10000   # 1/100 s
-        self._gain = 1.0            # ISO 100
 
     def _render_frame(self):
         from PIL import Image, ImageDraw
@@ -688,16 +702,6 @@ class MockCamera(BaseCamera):
         img.save(buf, format="JPEG", quality=80)
         return buf.getvalue()
 
-    def set_controls(self, settings: dict) -> dict:
-        if settings.get("auto_exposure") is not None:
-            self._auto_exposure = bool(settings["auto_exposure"])
-        if settings.get("shutter_us") is not None:
-            self._exposure_us = max(1, int(settings["shutter_us"]))
-        if settings.get("iso") is not None:
-            self._gain = max(1.0, float(settings["iso"]) / 100.0)
-        self._save_settings()
-        return self.controls_state()
-
     def tuning_available(self) -> bool:
         # Pretend to be a NoIR sensor so the Settings toggle and the
         # preset-hiding behavior are both testable off-Pi.
@@ -705,20 +709,6 @@ class MockCamera(BaseCamera):
 
     def wb_presets_supported(self) -> bool:
         return self._tuning == "standard"
-
-    def controls_state(self) -> dict:
-        state = {
-            "auto_exposure": self._auto_exposure,
-            "iso": int(round(self._gain * 100)),
-            "shutter_us": self._exposure_us,
-        }
-        if self._auto_exposure:
-            iso, shutter = _live_exposure_from_metadata(self.metadata())
-            if iso is not None:
-                state["iso"] = iso
-            if shutter is not None:
-                state["shutter_us"] = shutter
-        return state
 
     def stream(self):
         interval = 1.0 / self.FPS
@@ -786,12 +776,12 @@ class MockCamera(BaseCamera):
         t = time.time()
         wobble = math.sin(t * 0.7) * 0.5 + 0.5  # 0..1
         # In manual mode, report the set exposure/gain instead of the wobble.
-        if self._auto_exposure:
+        if self._controls["auto_exposure"]:
             exposure = int(8000 + wobble * 12000)
             gain = round(1.0 + wobble * 3.0, 3)
         else:
-            exposure = self._exposure_us
-            gain = round(self._gain, 3)
+            exposure = self._controls["shutter_us"]
+            gain = round(self._controls["iso"] / 100.0, 3)
         # Manual WB reports the set gains; otherwise AWB "chooses" a wobble.
         if self._wb["mode"] == "manual":
             colour_gains = [self._wb["red_gain"], self._wb["blue_gain"]]
@@ -896,10 +886,9 @@ class RealCamera(BaseCamera):
         # Exposure/focus/WB defaults applied to the live sensor. Apply without
         # persisting — restore_settings() (called after construction) loads any
         # saved values and would otherwise be clobbered by these defaults.
-        self._state = {"auto_exposure": True, "iso": 100, "shutter_us": 10000}
         self._restoring = True
         try:
-            self.set_controls(self._state)
+            self._apply_controls()
             self._apply_white_balance()
             if self.focus_available():
                 self._apply_focus()
@@ -981,7 +970,7 @@ class RealCamera(BaseCamera):
             was_restoring = self._restoring
             self._restoring = True
             try:
-                self.set_controls(self._state)
+                self._apply_controls()
                 self._apply_white_balance()
                 if self.focus_available():
                     if self._af_point:
@@ -1143,16 +1132,9 @@ class RealCamera(BaseCamera):
         with self._camera_lock:
             return _jsonable(dict(self._picam2.capture_metadata()))
 
-    def set_controls(self, settings: dict) -> dict:
-        if settings.get("auto_exposure") is not None:
-            self._state["auto_exposure"] = bool(settings["auto_exposure"])
-        if settings.get("iso") is not None:
-            self._state["iso"] = max(100, int(settings["iso"]))
-        if settings.get("shutter_us") is not None:
-            self._state["shutter_us"] = max(1, int(settings["shutter_us"]))
-
+    def _apply_controls(self) -> None:
         with self._camera_lock:
-            if self._state["auto_exposure"]:
+            if self._controls["auto_exposure"]:
                 # Hand exposure back to the auto-exposure algorithm.
                 self._picam2.set_controls({"AeEnable": True})
             else:
@@ -1160,22 +1142,10 @@ class RealCamera(BaseCamera):
                 self._picam2.set_controls(
                     {
                         "AeEnable": False,
-                        "AnalogueGain": self._state["iso"] / 100.0,
-                        "ExposureTime": self._state["shutter_us"],
+                        "AnalogueGain": self._controls["iso"] / 100.0,
+                        "ExposureTime": self._controls["shutter_us"],
                     }
                 )
-        self._save_settings()
-        return self.controls_state()
-
-    def controls_state(self) -> dict:
-        state = dict(self._state)
-        if state["auto_exposure"]:
-            iso, shutter = _live_exposure_from_metadata(self.metadata())
-            if iso is not None:
-                state["iso"] = iso
-            if shutter is not None:
-                state["shutter_us"] = shutter
-        return state
 
     def focus_available(self) -> bool:
         # Only cameras with a lens motor (e.g. Camera Module 3) report

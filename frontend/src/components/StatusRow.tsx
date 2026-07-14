@@ -44,6 +44,10 @@ export default function StatusRow() {
   const thermal = useThermal();
 
   useEffect(() => {
+    // Seed the clock post-mount: rendering the time during the static-export
+    // prerender would make the HTML disagree with the first client render
+    // (hydration mismatch), so it starts as "—" and fills in here.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setNow(new Date());
     const id = window.setInterval(() => setNow(new Date()), 1000);
     return () => window.clearInterval(id);

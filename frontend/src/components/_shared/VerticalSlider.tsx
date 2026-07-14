@@ -53,7 +53,7 @@ export default function VerticalSlider({
   return (
     <label className="flex h-full w-full min-w-0 flex-col items-center gap-4">
       <div className="flex w-full min-w-0 flex-col items-center">
-        <span className="w-full truncate text-center font-mono text-sm font-bold text-gray-500">
+        <span className="w-full truncate text-center font-mono text-sm font-semibold text-gray-500">
           {label}
         </span>
         <span className="font-mono text-xs text-gray-500">{value}</span>

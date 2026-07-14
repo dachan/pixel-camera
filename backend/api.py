@@ -309,7 +309,7 @@ def system_temperature():
     """Pi temperatures plus the app's thermal-throttle state."""
     volts = thermal_config.read_battery_voltage()
     return jsonify(
-        battery_level=thermal_config.read_battery_level(),
+        battery_level=thermal_config.read_battery_level(volts),
         battery_volts=round(volts, 2) if volts is not None else None,
         # Lowest/highest cell voltage ever observed (persisted across
         # restarts) — a single instantaneous reading can't show whether the

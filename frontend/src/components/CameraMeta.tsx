@@ -32,7 +32,7 @@ function MetaPanel({
 }) {
   return (
     <section className="flex flex-col rounded-xl border border-stone-300 bg-stone-200 text-sm shadow-lg">
-      <h2 className="top-0 z-10 rounded-t-xl bg-stone-400 px-3 py-2 font-bold text-stone-900">
+      <h2 className="top-0 z-10 rounded-t-xl bg-stone-400 px-3 py-2 font-semibold text-stone-900">
         {title}
       </h2>
       <dl className="space-y-1 p-3">{children}</dl>

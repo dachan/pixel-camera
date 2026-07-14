@@ -37,8 +37,12 @@ class SettingsStore:
         return data if isinstance(data, dict) else None
 
     def save(self, settings: dict) -> None:
+        # Write-then-rename so a crash mid-write can't leave a truncated
+        # file — a corrupt settings.json would silently reset every setting.
+        tmp = self.path + ".tmp"
         try:
-            with open(self.path, "w") as f:
+            with open(tmp, "w") as f:
                 json.dump(settings, f, indent=2)
+            os.replace(tmp, self.path)
         except OSError:
             pass

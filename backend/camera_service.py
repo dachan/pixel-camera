@@ -130,14 +130,28 @@ def delete_all_captures(source: str = "") -> int:
     return deleted
 
 
+def _new_capture_path() -> str:
+    """Timestamped JPEG path that doesn't collide with an existing capture.
+
+    Filenames have one-second resolution, so a second capture within the
+    same second (e.g. HTTP + physical button) gets a -2/-3/... suffix
+    instead of silently overwriting the first.
+    """
+    base = datetime.now().strftime("%Y-%m-%d-%H%M%S")
+    path = os.path.join(CAPTURES_DIR, base + ".jpg")
+    n = 2
+    while os.path.exists(path) or os.path.exists(os.path.splitext(path)[0] + ".dng"):
+        path = os.path.join(CAPTURES_DIR, f"{base}-{n}.jpg")
+        n += 1
+    return path
+
+
 def do_capture() -> dict:
     """Capture a still into CAPTURES_DIR; returns camera.capture()'s result."""
     capture_events.publish("start")
     try:
         os.makedirs(CAPTURES_DIR, exist_ok=True)
-        base = datetime.now().strftime("%Y-%m-%d-%H%M%S")
-        path = os.path.join(CAPTURES_DIR, base + ".jpg")
-        return camera.capture(path)
+        return camera.capture(_new_capture_path())
     finally:
         capture_events.publish("done")
 

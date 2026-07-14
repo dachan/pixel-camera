@@ -15,7 +15,10 @@ export default function CaptureGallery() {
 
   usePolling(() => {
     listCaptures()
-      .then(setCaptures)
+      .then((names) => {
+        setCaptures(names);
+        setError(null); // a later successful poll clears a transient failure
+      })
       .catch((e) => setError(errorMessage(e)))
       .finally(() => setLoading(false));
   }, 3000);
