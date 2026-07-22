@@ -11,6 +11,7 @@ import {
   type WhiteBalanceState,
 } from "@/lib/camera-api";
 import { usePolling } from "@/lib/use-polling";
+import Button from "@/components/_shared/Button";
 import ButtonGroup from "@/components/_shared/ButtonGroup";
 import Slider, { SliderInput } from "@/components/_shared/Slider";
 
@@ -131,7 +132,7 @@ export default function WbControls() {
   }
 
   if (!wb) {
-    return <p className="text-sm text-gray-500">loading…</p>;
+    return <p className="text-sm text-stone-500">loading…</p>;
   }
 
   return (
@@ -157,29 +158,28 @@ export default function WbControls() {
       </div>
 
       {wb.presets_supported && wb.mode !== "manual" && (
-        <div className="grid shrink-0 grid-cols-2 gap-2">
-          {PRESETS.map((preset) => {
-            const active = wb.mode === preset.value;
-            return (
-              <button
-                key={preset.value}
-                type="button"
-                onClick={() => applyWb({ mode: preset.value })}
-                className={`rounded-md border p-2.5 text-xs font-semibold transition ${
-                  active
-                    ? "border-orange-500 bg-orange-500 text-white"
-                    : "border-orange-300 text-orange-500 hover:border-gray-500 hover:text-white"
-                }`}
-              >
-                {preset.label}
-              </button>
-            );
-          })}
+        <div className="flex shrink-0 flex-col gap-2">
+          <h2 className="text-xs font-semibold text-stone-500">Presets</h2>
+          <div className="grid grid-cols-2 gap-2">
+            {PRESETS.map((preset) => {
+              const active = wb.mode === preset.value;
+              return (
+                <Button
+                  key={preset.value}
+                  variant="secondary"
+                  selected={active}
+                  onClick={() => applyWb({ mode: preset.value })}
+                >
+                  {preset.label}
+                </Button>
+              );
+            })}
+          </div>
         </div>
       )}
 
       {!wb.presets_supported && (
-        <p className="shrink-0 text-center text-xs text-gray-500">
+        <p className="shrink-0 text-center text-xs text-stone-500">
           This NoIR sensor ignores WB presets — use Manual gains to shift
           colour.
         </p>
@@ -208,31 +208,39 @@ export default function WbControls() {
               label={label}
               value={Math.round(wbAdjust[key] * 100)}
             >
-              <SliderInput
-                orientation="horizontal"
-                min={-100}
-                max={100}
-                step={1}
-                value={Math.round(wbAdjust[key] * 100)}
-                onChange={(e) =>
-                  adjustWb({ [key]: Number(e.target.value) / 100 })
-                }
-                trackBackground={gradient}
-              />
+              {/* One-off gradient track: painted behind a transparent range track. */}
+              <div className="relative flex h-12 min-w-0 flex-1 items-center">
+                <div
+                  aria-hidden
+                  className="pointer-events-none absolute inset-x-0 h-1.5 rounded-md"
+                  style={{ background: gradient }}
+                />
+                <SliderInput
+                  orientation="horizontal"
+                  min={-100}
+                  max={100}
+                  step={1}
+                  value={Math.round(wbAdjust[key] * 100)}
+                  onChange={(e) =>
+                    adjustWb({ [key]: Number(e.target.value) / 100 })
+                  }
+                  className="[&::-moz-range-track]:!bg-transparent [&::-webkit-slider-runnable-track]:!bg-transparent [&::-moz-range-thumb]:!size-8 [&::-moz-range-thumb]:!rounded-full [&::-webkit-slider-thumb]:!-mt-3.25 [&::-webkit-slider-thumb]:!size-8 [&::-webkit-slider-thumb]:!rounded-full"
+                />
+              </div>
             </Slider>
           ))}
-          <p className="text-center font-mono text-xs text-gray-500">
+          <p className="text-center font-mono text-xs text-stone-700">
             R {wb.red_gain.toFixed(2)} · B {wb.blue_gain.toFixed(2)}
           </p>
         </div>
       ) : (
-        <p className="text-center font-mono text-xs text-gray-500">
+        <p className="text-center font-mono text-xs text-stone-700">
           live gains · R {wb.red_gain.toFixed(2)} · B {wb.blue_gain.toFixed(2)}
         </p>
       )}
 
       {tuningBusy && (
-        <p className="shrink-0 text-center text-xs text-gray-500">
+        <p className="shrink-0 text-center text-xs text-stone-500">
           Restarting camera…
         </p>
       )}

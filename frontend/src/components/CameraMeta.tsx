@@ -11,6 +11,15 @@ import { errorMessage } from "@/lib/errors";
 import { usePolling } from "@/lib/use-polling";
 import DragScrollArea from "@/components/DragScrollArea";
 
+// Title-case a metadata key for display ("exposure_time" → "Exposure Time").
+function titleCaseLabel(key: string): string {
+  return key
+    .split(/[_\s-]+/)
+    .filter(Boolean)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+}
+
 // Format any camera value (numbers, booleans, arrays, nested) for display.
 function fmt(value: unknown): string {
   if (value === null || value === undefined) return "—";
@@ -31,8 +40,8 @@ function MetaPanel({
   children: ReactNode;
 }) {
   return (
-    <section className="flex flex-col rounded-md border border-stone-300 bg-stone-200 text-sm shadow-lg">
-      <h2 className="top-0 z-10 rounded-t-md bg-stone-400 px-3 py-2 font-semibold text-stone-900">
+    <section className="flex flex-col rounded-md border border-stone-300 bg-stone-100 text-sm">
+      <h2 className="border-b border-stone-300 px-3 py-2 text-xs font-semibold text-stone-500">
         {title}
       </h2>
       <dl className="space-y-1 p-3">{children}</dl>
@@ -44,7 +53,7 @@ function MetaRow({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div className="flex justify-between gap-3">
       <dt className="text-stone-500">{label}</dt>
-      <dd className="font-mono text-stone-500">{children}</dd>
+      <dd className="font-mono text-stone-700">{children}</dd>
     </div>
   );
 }
@@ -83,7 +92,7 @@ export default function CameraMeta() {
       <MetaPanel title="Live Metadata">
         {meta ? (
           Object.entries(meta).map(([k, v]) => (
-            <MetaRow key={k} label={k}>
+            <MetaRow key={k} label={titleCaseLabel(k)}>
               {fmt(v)}
             </MetaRow>
           ))
@@ -92,10 +101,10 @@ export default function CameraMeta() {
         )}
       </MetaPanel>
 
-      <MetaPanel title="Controls (range)">
+      <MetaPanel title="Controls (Range)">
         {info ? (
           Object.entries(info.controls).map(([k, r]) => (
-            <MetaRow key={k} label={k}>
+            <MetaRow key={k} label={titleCaseLabel(k)}>
               {fmt(r.min)} … {fmt(r.max)}
               {r.default !== null && (
                 <span className="text-stone-500"> (def {fmt(r.default)})</span>
@@ -110,7 +119,7 @@ export default function CameraMeta() {
       <MetaPanel title="Properties">
         {info ? (
           Object.entries(info.properties).map(([k, v]) => (
-            <MetaRow key={k} label={k}>
+            <MetaRow key={k} label={titleCaseLabel(k)}>
               {fmt(v)}
             </MetaRow>
           ))

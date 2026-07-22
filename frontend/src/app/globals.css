@@ -1,46 +1,5 @@
 @import "tailwindcss";
 
-@utility button-shadow {
-  box-shadow:
-    rgba(50, 50, 50, 0.1) 0px 0px 4px 2px,
-    rgba(0, 0, 0, 0.05) 0px 0px 2px 1px;
-
-  &:active {
-    box-shadow: none;
-  }
-
-  @media (hover: hover) {
-    &:hover {
-      box-shadow:
-        rgba(50, 50, 50, 0.1) 0px 0px 8px 4px,
-        rgba(0, 0, 0, 0.05) 0px 0px 4px 2px;
-    }
-  }
-}
-
-@utility switch-shadow {
-  box-shadow:
-    rgba(50, 50, 50, 0.05) 0px 0px 6px 3px,
-    rgba(0, 0, 0, 0.05) 0px 0px 4px 2px;
-}
-
-@utility switch-active-shadow {
-  box-shadow:
-    rgba(50, 50, 50, 0.1) 0px 0px 0px 0px,
-    rgba(0, 0, 0, 0.05) 0px 0px 0px 0px;
-}
-
-@utility slider-shadow {
-  &::-moz-range-thumb,
-  &::-webkit-slider-thumb {
-    box-shadow:
-      rgba(50, 50, 50, 0.15) 0 0 4px 1px,
-      rgba(0, 0, 0, 0.05) 0 0 2px 1px,
-      inset 0 0 8px 4px rgba(255, 255, 255, 0.5),
-      inset 0 0 0 4px rgba(255, 255, 255, 0.75);
-  }
-}
-
 /* Touch kiosk: hide native scrollbars everywhere. Scrolling is drag-based
    (see use-drag-scroll), so no scrollbar should ever be visible in any tab. */
 * {

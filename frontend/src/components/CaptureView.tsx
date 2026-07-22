@@ -17,13 +17,13 @@ const FOCUS_RING_MS = 900;
 // 9:16 at 90/270. Kept in sync with RealCamera/MockCamera WIDTH/HEIGHT.
 const STREAM_ASPECT = 16 / 9;
 
-// Must match the frame's border-4 (px). The border uses box-sizing:
+// Must match the frame's border (1px). The border uses box-sizing:
 // border-box, so it eats into the box's content area — where the <img>
 // with object-contain actually lives. Fitting the aspect ratio to the
 // content area (see fitFrameToAspect) instead of the full bordered box
 // keeps that interior exactly on-ratio, so object-contain never has to
 // letterbox a few px inside its own frame.
-const FRAME_BORDER_PX = 4;
+const FRAME_BORDER_PX = 1;
 
 // Largest {width, height} (px), including the border, so the box's
 // content area (after subtracting the border) exactly fits `container`
@@ -186,7 +186,7 @@ export function CameraPreview({ showGrid = false }: { showGrid?: boolean }) {
         style={
           box.width > 0 ? { width: box.width, height: box.height } : undefined
         }
-        className={`relative overflow-hidden rounded-md border-4 border-stone-50 bg-black shadow-[0_0_15px_rgba(0,0,0,0.5)] ${
+        className={`relative overflow-hidden rounded-md border border-stone-300 bg-black ${
           focusAvailable ? "cursor-crosshair" : ""
         }`}
       >

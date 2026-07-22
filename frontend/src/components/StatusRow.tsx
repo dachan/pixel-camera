@@ -33,10 +33,10 @@ function batteryLevel(thermal: SystemThermal | null): string {
 function StatusItem({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-baseline gap-2 text-xs">
-      <span className="font-mono tracking-wide text-slate-500 uppercase">
+      <span className="font-mono tracking-wide text-stone-500">
         {label}
       </span>
-      <span className="font-mono font-semibold text-slate-500">{value}</span>
+      <span className="font-mono font-semibold text-stone-700">{value}</span>
     </div>
   );
 }

@@ -21,10 +21,8 @@ export default function ButtonGroup<T extends string>({
           key={item.id}
           type="button"
           onClick={() => onChange(item.id)}
-          className={`flex-1 truncate rounded-md border border-stone-300 bg-stone-100 px-4 py-2 text-xs font-semibold uppercase transition ${
-            active === item.id
-              ? "switch-active-shadow text-orange-500"
-              : "switch-shadow text-stone-500"
+          className={`flex-1 truncate rounded-md border border-stone-300 bg-stone-100 px-4 py-2 text-xs font-semibold transition ${
+            active === item.id ? "text-orange-500" : "text-stone-500"
           }`}
         >
           {item.label}

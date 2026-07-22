@@ -163,14 +163,14 @@ export default function CameraSettings({
           thermal?.battery_volts !== undefined && (
             <section className="flex flex-col gap-2 text-stone-500">
               <div className="flex items-center justify-between gap-3">
-                <h2 className="text-sm font-semibold">Battery</h2>
+                <h2 className="text-sm font-semibold text-stone-700">Battery</h2>
                 <button
                   type="button"
                   onClick={onResetBatteryLog}
                   disabled={resettingLog}
                   className="text-xs font-semibold text-red-500 transition disabled:opacity-50"
                 >
-                  {resettingLog ? "Resetting…" : "Reset log"}
+                  {resettingLog ? "Resetting…" : "Reset Log"}
                 </button>
               </div>
               <div className="flex flex-col gap-1 text-sm">
@@ -204,7 +204,7 @@ export default function CameraSettings({
         {thermal && (
           <section className="flex flex-col gap-2">
             <SettingToggle
-              title="Thermal throttling"
+              title="Thermal Throttling"
               description={`Cap the CPU to 1.5 GHz and the live preview to 15fps when it passes ${Math.round(
                 thermal.throttle_at,
               )} °C, to keep the Pi cool. Slows captures and the UI while active.`}
@@ -222,14 +222,14 @@ export default function CameraSettings({
         )}
 
         <SettingToggle
-          title="Rule-of-thirds grid"
+          title="Rule-Of-Thirds Grid"
           description="Composition grid overlaid on the live preview."
           checked={showGrid}
           onChange={onGridChange}
         />
 
         <SettingToggle
-          title="On-screen capture button"
+          title="On-Screen Capture Button"
           description="Shutter button on the Camera tab. Turn off if you're only using the physical shutter button."
           checked={showCaptureButton}
           onChange={onCaptureButtonChange}
@@ -237,8 +237,8 @@ export default function CameraSettings({
 
         <section className="flex flex-col gap-3">
           <div className="flex flex-col gap-1">
-            <h2 className="text-sm font-semibold text-stone-500">
-              Sensor rotation
+            <h2 className="text-sm font-semibold text-stone-700">
+              Sensor Rotation
             </h2>
             <p className="text-sm text-stone-500">
               Rotation applied to the live preview and captured images.
@@ -258,8 +258,8 @@ export default function CameraSettings({
 
         <section className="flex flex-col gap-2">
           <div className="flex flex-col gap-1">
-            <h2 className="text-sm font-semibold text-stone-500">
-              Capture quality
+            <h2 className="text-sm font-semibold text-stone-700">
+              Capture Quality
             </h2>
             <p className="text-sm text-stone-500">
               JPEG quality for saved photos (1–100). Higher means larger files.
@@ -289,8 +289,8 @@ export default function CameraSettings({
 
         <section className="flex flex-col gap-3">
           <div className="flex flex-col gap-1">
-            <h2 className="text-sm font-semibold text-stone-500">
-              Capture format
+            <h2 className="text-sm font-semibold text-stone-700">
+              Capture Format
             </h2>
             <p className="text-sm text-stone-500">
               RAW saves an unprocessed .dng for editing. Browsers can&apos;t
@@ -310,8 +310,8 @@ export default function CameraSettings({
 
         <section className="flex flex-col gap-2">
           <div className="flex flex-col gap-1">
-            <h2 className="text-sm font-semibold text-stone-500">
-              Delete all photos
+            <h2 className="text-sm font-semibold text-stone-700">
+              Delete All Photos
             </h2>
             <p className="text-sm text-stone-500">
               Remove every capture (JPEG and RAW) from the Pi. This cannot be
@@ -320,8 +320,8 @@ export default function CameraSettings({
           </div>
           <Button onClick={onDeleteAllClick}>
             {confirmingDelete
-              ? "Tap again to delete everything"
-              : "Delete all photos"}
+              ? "Tap Again To Delete Everything"
+              : "Delete All Photos"}
           </Button>
           {deleteResult && (
             <p className="text-sm text-stone-400">{deleteResult}</p>
@@ -330,7 +330,7 @@ export default function CameraSettings({
 
         <section className="flex flex-col gap-2">
           <div className="flex flex-col gap-1">
-            <h2 className="text-sm font-semibold text-stone-500">Exit kiosk</h2>
+            <h2 className="text-sm font-semibold text-stone-700">Exit Kiosk</h2>
             <p className="text-sm text-stone-500">
               Reboot into the Pi desktop for one session. The next reboot
               returns to kiosk mode.
@@ -338,8 +338,8 @@ export default function CameraSettings({
           </div>
           <Button onClick={onExitClick}>
             {confirmingExit
-              ? "Tap again to reboot to desktop"
-              : "Exit to desktop"}
+              ? "Tap Again To Reboot To Desktop"
+              : "Exit To Desktop"}
           </Button>
         </section>
       </div>

@@ -15,7 +15,7 @@ import WbControls from "@/components/camera-controls/WbControls";
 export const CONTROL_TABS = [
   { id: "exposure", label: "Exposure" },
   { id: "focus", label: "Focus" },
-  { id: "wb", label: "WB" },
+  { id: "wb", label: "White Balance" },
 ] as const;
 
 export type ControlTabId = (typeof CONTROL_TABS)[number]["id"];

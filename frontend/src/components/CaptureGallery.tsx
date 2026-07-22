@@ -33,7 +33,7 @@ export default function CaptureGallery() {
 
   if (loading) {
     return (
-      <p className="flex size-full items-center justify-center text-center text-sm text-zinc-500">
+      <p className="flex size-full items-center justify-center text-center text-sm text-stone-500">
         Loading captures…
       </p>
     );
@@ -41,7 +41,7 @@ export default function CaptureGallery() {
 
   if (captures.length === 0) {
     return (
-      <p className="flex size-full items-center justify-center text-center text-sm text-zinc-500">
+      <p className="flex size-full items-center justify-center text-center text-sm text-stone-500">
         No captures yet. Use the Capture button on the Camera tab.
       </p>
     );
@@ -54,9 +54,9 @@ export default function CaptureGallery() {
           <figure
             key={filename}
             onClick={() => setSelected(filename)}
-            className="cursor-pointer overflow-hidden rounded-md border border-zinc-800 bg-zinc-900/50 transition hover:border-zinc-600"
+            className="cursor-pointer overflow-hidden rounded-md border border-stone-300 bg-stone-100 transition hover:border-orange-500"
           >
-            <div className="flex aspect-video w-full items-center justify-center bg-zinc-950">
+            <div className="flex aspect-video w-full items-center justify-center bg-stone-200">
               <img
                 src={captureThumbUrl(filename)}
                 alt={filename}
@@ -65,7 +65,7 @@ export default function CaptureGallery() {
                 className="max-h-full max-w-full object-contain"
               />
             </div>
-            <figcaption className="truncate px-2 py-1.5 font-mono text-xs text-zinc-400">
+            <figcaption className="truncate px-2 py-1.5 font-mono text-xs text-stone-500">
               {filename}
             </figcaption>
           </figure>
@@ -77,15 +77,15 @@ export default function CaptureGallery() {
           role="dialog"
           aria-label={selected}
           onClick={() => setSelected(null)}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/95 p-4"
         >
           <img
             src={captureUrl(selected)}
             alt={selected}
             className="max-h-full max-w-full object-contain"
           />
-          <span className="pointer-events-none absolute bottom-3 left-1/2 -translate-x-1/2 rounded-md bg-black/60 px-2 py-1 font-mono text-xs text-zinc-300">
-            {selected} · tap to close
+          <span className="pointer-events-none absolute bottom-3 left-1/2 -translate-x-1/2 rounded-md border border-stone-300 bg-stone-100 px-2 py-1 font-mono text-xs text-stone-500">
+            {selected} · Tap To Close
           </span>
         </div>
       )}
