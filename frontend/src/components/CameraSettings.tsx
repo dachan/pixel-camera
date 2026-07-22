@@ -173,25 +173,25 @@ export default function CameraSettings({
                   {resettingLog ? "Resetting…" : "Reset Log"}
                 </button>
               </div>
-              <div className="flex flex-col gap-1 text-sm">
+              <div className="flex flex-col gap-1 text-xs">
                 <div className="flex justify-between">
-                  <span className="">Now</span>
-                  <span className="font-mono font-semibold">
+                  <span>Now</span>
+                  <span className="font-mono font-semibold text-stone-700">
                     {thermal.battery_volts.toFixed(2)}V ({thermal.battery_level}
                     %)
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="">Lowest</span>
-                  <span className="font-mono">
+                  <span>Lowest</span>
+                  <span className="font-mono text-stone-700">
                     {thermal.battery_min
                       ? `${thermal.battery_min.volts.toFixed(2)}V (${thermal.battery_min.percent}%) · ${formatAgo(thermal.battery_min.at)}`
                       : "—"}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="">Highest</span>
-                  <span className="font-mono">
+                  <span>Highest</span>
+                  <span className="font-mono text-stone-700">
                     {thermal.battery_max
                       ? `${thermal.battery_max.volts.toFixed(2)}V (${thermal.battery_max.percent}%) · ${formatAgo(thermal.battery_max.at)}`
                       : "—"}
@@ -240,13 +240,13 @@ export default function CameraSettings({
             <h2 className="text-sm font-semibold text-stone-700">
               Sensor Rotation
             </h2>
-            <p className="text-sm text-stone-500">
+            <p className="text-xs text-stone-500">
               Rotation applied to the live preview and captured images.
             </p>
           </div>
 
           {rotation === null ? (
-            <p className="text-sm text-stone-500">loading…</p>
+            <p className="text-xs text-stone-500">loading…</p>
           ) : (
             <ButtonGroup
               items={ROTATION_ITEMS}
@@ -261,12 +261,12 @@ export default function CameraSettings({
             <h2 className="text-sm font-semibold text-stone-700">
               Capture Quality
             </h2>
-            <p className="text-sm text-stone-500">
+            <p className="text-xs text-stone-500">
               JPEG quality for saved photos (1–100). Higher means larger files.
             </p>
           </div>
           {quality === null ? (
-            <p className="text-sm text-stone-500">loading…</p>
+            <p className="text-xs text-stone-500">loading…</p>
           ) : (
             <Slider orientation="horizontal" value={quality}>
               <SliderInput
@@ -292,13 +292,13 @@ export default function CameraSettings({
             <h2 className="text-sm font-semibold text-stone-700">
               Capture Format
             </h2>
-            <p className="text-sm text-stone-500">
+            <p className="text-xs text-stone-500">
               RAW saves an unprocessed .dng for editing. Browsers can&apos;t
               preview DNG, so RAW-only photos won&apos;t appear in the Gallery.
             </p>
           </div>
           {format === null ? (
-            <p className="text-sm text-stone-500">loading…</p>
+            <p className="text-xs text-stone-500">loading…</p>
           ) : (
             <ButtonGroup
               items={FORMAT_ITEMS}
@@ -313,30 +313,38 @@ export default function CameraSettings({
             <h2 className="text-sm font-semibold text-stone-700">
               Delete All Photos
             </h2>
-            <p className="text-sm text-stone-500">
+            <p className="text-xs text-stone-500">
               Remove every capture (JPEG and RAW) from the Pi. This cannot be
               undone.
             </p>
           </div>
-          <Button onClick={onDeleteAllClick}>
+          <Button
+            variant="destructive"
+            selected={confirmingDelete}
+            onClick={onDeleteAllClick}
+          >
             {confirmingDelete
               ? "Tap Again To Delete Everything"
               : "Delete All Photos"}
           </Button>
           {deleteResult && (
-            <p className="text-sm text-stone-400">{deleteResult}</p>
+            <p className="text-xs text-stone-500">{deleteResult}</p>
           )}
         </section>
 
         <section className="flex flex-col gap-2">
           <div className="flex flex-col gap-1">
             <h2 className="text-sm font-semibold text-stone-700">Exit Kiosk</h2>
-            <p className="text-sm text-stone-500">
+            <p className="text-xs text-stone-500">
               Reboot into the Pi desktop for one session. The next reboot
               returns to kiosk mode.
             </p>
           </div>
-          <Button onClick={onExitClick}>
+          <Button
+            variant="destructive"
+            selected={confirmingExit}
+            onClick={onExitClick}
+          >
             {confirmingExit
               ? "Tap Again To Reboot To Desktop"
               : "Exit To Desktop"}

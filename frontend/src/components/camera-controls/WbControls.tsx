@@ -159,7 +159,7 @@ export default function WbControls() {
 
       {wb.presets_supported && wb.mode !== "manual" && (
         <div className="flex shrink-0 flex-col gap-2">
-          <h2 className="text-xs font-semibold text-stone-500">Presets</h2>
+          <h2 className="text-sm font-semibold text-stone-700">Presets</h2>
           <div className="grid grid-cols-2 gap-2">
             {PRESETS.map((preset) => {
               const active = wb.mode === preset.value;
@@ -212,7 +212,7 @@ export default function WbControls() {
               <div className="relative flex h-12 min-w-0 flex-1 items-center">
                 <div
                   aria-hidden
-                  className="pointer-events-none absolute inset-x-0 h-1.5 rounded-md"
+                  className="pointer-events-none absolute inset-x-0 top-1/2 z-0 h-1.5 -translate-y-1/2 rounded-full"
                   style={{ background: gradient }}
                 />
                 <SliderInput
@@ -224,7 +224,7 @@ export default function WbControls() {
                   onChange={(e) =>
                     adjustWb({ [key]: Number(e.target.value) / 100 })
                   }
-                  className="[&::-moz-range-track]:!bg-transparent [&::-webkit-slider-runnable-track]:!bg-transparent [&::-moz-range-thumb]:!size-8 [&::-moz-range-thumb]:!rounded-full [&::-webkit-slider-thumb]:!-mt-3.25 [&::-webkit-slider-thumb]:!size-8 [&::-webkit-slider-thumb]:!rounded-full"
+                  className="relative z-10 [&::-moz-range-track]:!bg-transparent [&::-webkit-slider-runnable-track]:!bg-transparent [&::-moz-range-thumb]:!size-8 [&::-moz-range-thumb]:!bg-stone-100 [&::-webkit-slider-thumb]:!-mt-3.25 [&::-webkit-slider-thumb]:!size-8 [&::-webkit-slider-thumb]:!bg-stone-100"
                 />
               </div>
             </Slider>

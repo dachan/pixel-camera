@@ -25,9 +25,9 @@ function batteryLevel(thermal: SystemThermal | null): string {
   if (thermal?.battery_level === null || thermal?.battery_level === undefined) {
     return "—";
   }
-  // A ⚡ prefix marks charging (inferred from the voltage trend).
-  const bolt = thermal.charging ? "⚡" : "";
-  return `${bolt}${thermal.battery_level}%`;
+  // A "+" prefix marks charging (inferred from the voltage trend).
+  const mark = thermal.charging ? "+" : "";
+  return `${mark}${thermal.battery_level}%`;
 }
 
 function StatusItem({ label, value }: { label: string; value: string }) {

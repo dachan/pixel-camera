@@ -20,7 +20,7 @@ export default function SettingToggle({
       <div className="flex items-center justify-between gap-3">
         <div className="flex flex-col gap-1">
           <h2 className="text-sm font-semibold text-stone-700">{title}</h2>
-          <p className="text-sm text-stone-500">{description}</p>
+          <p className="text-xs text-stone-500">{description}</p>
         </div>
         <Switch checked={checked} onChange={onChange} />
       </div>

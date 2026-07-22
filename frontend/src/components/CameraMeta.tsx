@@ -40,18 +40,16 @@ function MetaPanel({
   children: ReactNode;
 }) {
   return (
-    <section className="flex flex-col rounded-md border border-stone-300 bg-stone-100 text-sm">
-      <h2 className="border-b border-stone-300 px-3 py-2 text-xs font-semibold text-stone-500">
-        {title}
-      </h2>
-      <dl className="space-y-1 p-3">{children}</dl>
+    <section className="flex flex-col gap-2">
+      <h2 className="text-sm font-semibold text-stone-700">{title}</h2>
+      <dl className="flex flex-col gap-1">{children}</dl>
     </section>
   );
 }
 
 function MetaRow({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <div className="flex justify-between gap-3">
+    <div className="flex justify-between gap-3 text-xs">
       <dt className="text-stone-500">{label}</dt>
       <dd className="font-mono text-stone-700">{children}</dd>
     </div>
@@ -59,7 +57,7 @@ function MetaRow({ label, children }: { label: string; children: ReactNode }) {
 }
 
 function MetaPlaceholder({ children }: { children: ReactNode }) {
-  return <p className="text-stone-500">{children}</p>;
+  return <p className="text-xs text-stone-500">{children}</p>;
 }
 
 export default function CameraMeta() {
@@ -88,7 +86,7 @@ export default function CameraMeta() {
   }
 
   return (
-    <DragScrollArea className="flex flex-col gap-4 pb-3">
+    <DragScrollArea className="flex flex-col gap-6 pb-3">
       <MetaPanel title="Live Metadata">
         {meta ? (
           Object.entries(meta).map(([k, v]) => (
