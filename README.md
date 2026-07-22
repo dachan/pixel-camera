@@ -5,6 +5,8 @@ A touchscreen camera UI for a Raspberry Pi + camera module: a **Next.js**
 against a mock camera, then deploy to a Pi 5 (Bookworm 64-bit, Wayland/labwc)
 where it boots straight into a full-screen kiosk on the app.
 
+![Pixel Camera UI](marketing/assets/pixel-ui-1.png)
+
 Code only ever flows **Mac → Pi**. The Pi is a runtime, not a dev box.
 
 ## Features
@@ -52,6 +54,9 @@ pixel-camera/
 │       ├── components/CaptureView.tsx        # viewfinder + focus peaking
 │       ├── components/camera-controls/*.tsx  # exposure / focus / WB panels
 │       └── app/page.tsx
+├── marketing/
+│   ├── assets/              # screenshots and stills for README / site
+│   └── video/               # highlight-reel source + compose scripts
 ├── scripts/deploy.sh        # Mac → Pi deploy
 ├── _deploy/
 │   ├── ircam-api.service.tpl  # systemd unit template (CAMERA=real)
