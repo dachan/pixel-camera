@@ -95,12 +95,15 @@ export default function FocusControls({
         </div>
 
         {/* Right margin keeps this block clear of the panel's right edge on
-            the Pi's 800x480 screen, where it was once cut off by 19px. */}
+            the Pi's 800x480 screen, where it was once cut off by 19px. The
+            50px nudge is a transform, not a margin, so it shifts this block
+            alone — a margin would re-centre the whole row and drag its
+            neighbours along. */}
         {onPeakingChange && (
           // Label included in the hit target — see SettingToggle.
           <div
             onClick={() => onPeakingChange(!peaking)}
-            className="mr-[6px] flex shrink-0 cursor-pointer flex-col items-start justify-center gap-2"
+            className="mr-[6px] flex shrink-0 -translate-x-[50px] cursor-pointer flex-col items-start justify-center gap-2"
           >
             <span className="font-mono text-xs leading-none font-semibold text-stone-500">
               Focus Peaking
