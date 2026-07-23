@@ -228,10 +228,6 @@ export default function CameraSettings({
                   </span>
                 </div>
               </div>
-              <p className="text-xs text-stone-500">
-                Charge uses the X1201 fuel gauge. Charging status comes from the
-                UPS&apos;s direct external-power signal.
-              </p>
             </section>
           )}
 
