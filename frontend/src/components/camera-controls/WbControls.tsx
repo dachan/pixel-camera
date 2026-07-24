@@ -11,7 +11,6 @@ import {
   type WhiteBalanceState,
 } from "@/lib/camera-api";
 import { usePolling } from "@/lib/use-polling";
-import Button from "@/components/_shared/Button";
 import ButtonGroup from "@/components/_shared/ButtonGroup";
 import Slider, { SliderInput } from "@/components/_shared/Slider";
 
@@ -30,13 +29,13 @@ const MODE_TABS = [
 
 // AWB presets, shown as buttons under the Auto/Manual tabs — each is a
 // variant of "auto" (still AWB-driven, not manual gains).
-const PRESETS: { value: WhiteBalanceMode; label: string }[] = [
-  { value: "incandescent", label: "Incandescent" },
-  { value: "tungsten", label: "Tungsten" },
-  { value: "fluorescent", label: "Fluorescent" },
-  { value: "indoor", label: "Indoor" },
-  { value: "daylight", label: "Daylight" },
-  { value: "cloudy", label: "Cloudy" },
+const PRESETS: { id: WhiteBalanceMode; label: string }[] = [
+  { id: "incandescent", label: "Incandescent" },
+  { id: "tungsten", label: "Tungsten" },
+  { id: "fluorescent", label: "Fluorescent" },
+  { id: "indoor", label: "Indoor" },
+  { id: "daylight", label: "Daylight" },
+  { id: "cloudy", label: "Cloudy" },
 ];
 
 const TEMP_FACTOR = 2.0;
@@ -186,21 +185,12 @@ export default function WbControls() {
       {wb.presets_supported && wb.mode !== "manual" && (
         <div className="flex shrink-0 flex-col gap-2">
           <h2 className="text-sm font-semibold text-stone-700">Presets</h2>
-          <div className="grid grid-cols-2 gap-2">
-            {PRESETS.map((preset) => {
-              const active = wb.mode === preset.value;
-              return (
-                <Button
-                  key={preset.value}
-                  variant="secondary"
-                  selected={active}
-                  onClick={() => applyWb({ mode: preset.value })}
-                >
-                  {preset.label}
-                </Button>
-              );
-            })}
-          </div>
+          <ButtonGroup
+            items={PRESETS}
+            active={wb.mode}
+            onChange={(mode) => applyWb({ mode })}
+            columns={2}
+          />
         </div>
       )}
 
