@@ -80,8 +80,16 @@ export default function CaptureGallery() {
     setDeleting(true);
     deleteCapture(selected)
       .then(() => {
-        setCaptures((current) => current.filter((name) => name !== selected));
-        closeSelected();
+        const remaining = captures.filter((name) => name !== selected);
+        setCaptures(remaining);
+        if (remaining.length === 0) {
+          closeSelected();
+        } else {
+          // Stay enlarged on the photo that slid into the deleted one's slot;
+          // clamp to the last when the deleted photo was at the end.
+          setSelected(remaining[Math.min(selectedIndex, remaining.length - 1)]);
+          setConfirmingDelete(false);
+        }
       })
       .catch((e) => setError(errorMessage(e)))
       .finally(() => setDeleting(false));
@@ -128,7 +136,7 @@ export default function CaptureGallery() {
           <figure
             key={filename}
             onClick={() => setSelected(filename)}
-            className="cursor-pointer overflow-hidden rounded-md border border-stone-300 bg-stone-100 transition hover:border-orange-500"
+            className="cursor-pointer overflow-hidden rounded-md border border-stone-300 bg-stone-100"
           >
             <div className="flex aspect-video w-full items-center justify-center bg-stone-200">
               <img
@@ -165,7 +173,7 @@ export default function CaptureGallery() {
             <img
               src={captureUrl(selected)}
               alt={selected}
-              className="max-h-full max-w-full object-contain"
+              className="max-h-full max-w-full rounded-md object-contain"
             />
             <div className="absolute bottom-3 left-1/2 flex -translate-x-1/2 gap-2">
               <Button
