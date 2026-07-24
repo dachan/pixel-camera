@@ -30,7 +30,7 @@ export default function CameraTabs() {
   const [active, setActive] = useState<TabId>("camera");
   // Exposure/Focus/WB selector; its buttons render under the preview but
   // control the content panel beside it, so the state is lifted here.
-  const [controlPanel, setControlPanel] = useState<ControlTabId>("exposure");
+  const [controlPanel, setControlPanel] = useState<ControlTabId>("focus");
   // Rule-of-thirds overlay on the live preview; defaults on, persisted locally.
   const [showGrid, setShowGrid] = useStoredBool("showGrid", true);
   // On-screen Capture button; defaults on. Off is for setups relying solely
