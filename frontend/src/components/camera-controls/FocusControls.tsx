@@ -32,7 +32,7 @@ export default function FocusControls({
           actually constrains the slider's height, while clipping cut the top
           2px off the label's lock icon, which sits on a -2px optical nudge.
           Matches the Exposure row, which has the same sliders un-clipped. */}
-      <div className="flex min-h-0 flex-1 items-stretch justify-center gap-3">
+      <div className="relative flex min-h-0 flex-1 items-stretch justify-start gap-3">
         {/* Fixed-width column: Slider's root is w-full, so left unbounded it
             would stretch and shove the side columns to the panel edges. */}
         <div className="flex w-16 shrink-0 justify-center">
@@ -72,30 +72,19 @@ export default function FocusControls({
             straddling its ends: pt-11 (44px) drops the first label's top onto
             the track top, clearing the Slider's two-line label/value header
             plus its gap-4, and the column's own bottom is already the track
-            bottom, so the last label's bottom lands on it.
-
-            The row centres its columns, so the horizontal margins here and on
-            the peaking block below are a tuned set, not independent knobs:
-            changing one shifts its neighbours by half as much. Measured on the
-            Pi's 800x480 screen. */}
-        <div className="mr-[17px] ml-[-16px] flex shrink-0 flex-col justify-between pt-11 text-left font-mono text-xs text-stone-500">
+            bottom, so the last label's bottom lands on it. */}
+        <div className="mr-4.25 -ml-4 flex shrink-0 flex-col justify-between pt-11 text-left font-mono text-xs text-stone-500">
           <span>Closer</span>
           <span>Infinity</span>
         </div>
 
-        {/* Right margin keeps this block clear of the panel's right edge on
-            the Pi's 800x480 screen, where it was once cut off by 19px. The
-            50px nudge is a transform, not a margin, so it shifts this block
-            alone — a margin would re-centre the whole row and drag its
-            neighbours along. */}
+        {/* Centered in the panel horizontally (and vertically) so it sits in
+            the middle of the focus column rather than beside the slider.
+            Label included in the hit target — see SettingToggle. */}
         {onPeakingChange && (
-          // Label included in the hit target — see SettingToggle. self-center
-          // (not the row's default stretch) sizes this block to just the label
-          // + switch, so the hit target isn't a full-height column of empty
-          // space above and below them.
           <div
             onClick={() => onPeakingChange(!peaking)}
-            className="mr-[6px] flex shrink-0 -translate-x-[50px] cursor-pointer flex-col items-start gap-2 self-center"
+            className="absolute top-1/2 left-1/2 flex -translate-x-1/2 -translate-y-1/2 cursor-pointer flex-col items-center gap-2"
           >
             <span className="font-mono text-xs leading-none font-semibold text-stone-500">
               Focus Peaking
