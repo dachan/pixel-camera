@@ -7,15 +7,20 @@ import Button from "@/components/_shared/Button";
 import ExposureControls from "@/components/camera-controls/ExposureControls";
 import FocusControls from "@/components/camera-controls/FocusControls";
 import WbControls from "@/components/camera-controls/WbControls";
+import {
+  ExposureIcon,
+  FocusIcon,
+  WhiteBalanceIcon,
+} from "@/components/camera-controls/control-tab-icons";
 
 // Tab list + active-tab type are shared with CameraTabs, which renders the
 // tab selector itself (under the live preview) while this component renders
 // the selected panel's content (beside the preview) — so the selector lives
 // in a different part of the layout than the content it controls.
 export const CONTROL_TABS = [
-  { id: "exposure", label: "Exposure" },
-  { id: "focus", label: "Focus" },
-  { id: "wb", label: "White Balance" },
+  { id: "exposure", label: "Exposure", icon: <ExposureIcon /> },
+  { id: "focus", label: "Focus", icon: <FocusIcon /> },
+  { id: "wb", label: "White Balance", icon: <WhiteBalanceIcon /> },
 ] as const;
 
 export type ControlTabId = (typeof CONTROL_TABS)[number]["id"];

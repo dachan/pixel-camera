@@ -1,6 +1,10 @@
+import { type ReactNode } from "react";
+
 type ButtonGroupItem<T extends string> = {
   id: T;
   label: string;
+  // Optional leading icon, rendered before the label.
+  icon?: ReactNode;
 };
 
 type ButtonGroupProps<T extends string> = {
@@ -36,13 +40,14 @@ export default function ButtonGroup<T extends string>({
           type="button"
           onClick={() => onChange(item.id)}
           style={basis ? { flexBasis: basis } : undefined}
-          className={`${wrap ? "grow" : "flex-1"} truncate rounded-md border border-stone-300 px-4 py-2 text-xs font-semibold transition-all ${
+          className={`${wrap ? "grow" : "flex-1"} flex items-center justify-center gap-1.5 rounded-md border border-stone-300 px-4 py-2 text-xs font-semibold transition-all ${
             active === item.id
               ? "bg-stone-50 text-orange-500 shadow-[0_0_2px_rgb(0_0_0_/_0.08)]"
               : "bg-stone-100 text-stone-400 shadow-[0_0_4px_rgb(0_0_0_/_0.16)]"
           }`}
         >
-          {item.label}
+          {item.icon}
+          <span className="min-w-0 truncate">{item.label}</span>
         </button>
       ))}
     </div>
