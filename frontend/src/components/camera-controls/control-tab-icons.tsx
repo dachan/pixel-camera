@@ -2,7 +2,7 @@
 // cohesive stroke set (24x24, fill-none, stroke-2, round caps) to match the
 // app's other line icons (see Slider's LockIcon/DisabledIcon).
 
-const SVG_CLASS = "size-8 shrink-0 fill-none stroke-current stroke-2";
+const SVG_CLASS = "size-6 shrink-0 fill-none stroke-current stroke-[1.5]";
 
 // Exposure compensation: a square split by a diagonal, + in the upper triangle
 // and − in the lower one.
