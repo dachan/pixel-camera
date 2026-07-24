@@ -53,7 +53,7 @@ export default function CameraControls({
   }
 
   return (
-    <section className="flex h-full w-full flex-col gap-4">
+    <section className="flex h-full w-full flex-col gap-8">
       <div className="min-h-0 flex-1">
         {panel === "exposure" ? (
           <ExposureControls />
