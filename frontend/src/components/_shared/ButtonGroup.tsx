@@ -15,6 +15,8 @@ type ButtonGroupProps<T extends string> = {
   // single row. Each button's basis is a clean 1/columns of the width (minus
   // the gaps), so the rows stay aligned; grow soaks up sub-pixel rounding.
   columns?: number;
+  // Extra classes applied to every button (e.g. a shared height with Capture).
+  buttonClassName?: string;
 };
 
 // gap-2 between buttons, in rem — used to compute the wrapped basis.
@@ -25,6 +27,7 @@ export default function ButtonGroup<T extends string>({
   active,
   onChange,
   columns,
+  buttonClassName,
 }: ButtonGroupProps<T>) {
   const wrap = columns != null;
   const basis = wrap
@@ -40,11 +43,15 @@ export default function ButtonGroup<T extends string>({
           type="button"
           onClick={() => onChange(item.id)}
           style={basis ? { flexBasis: basis } : undefined}
-          className={`${wrap ? "grow" : "flex-1"} flex items-center justify-center gap-1.5 rounded-md border border-stone-300 px-4 py-2 text-xs font-semibold transition-all ${
+          className={[
+            `${wrap ? "grow" : "flex-1"} flex items-center justify-center gap-1.5 rounded-md border border-stone-300 px-4 py-2 text-xs font-semibold transition-all`,
             active === item.id
               ? "bg-stone-50 text-orange-500 shadow-[0_0_2px_rgb(0_0_0_/_0.08)]"
-              : "bg-stone-100 text-stone-400 shadow-[0_0_4px_rgb(0_0_0_/_0.16)]"
-          }`}
+              : "bg-stone-100 text-stone-400 shadow-[0_0_4px_rgb(0_0_0_/_0.16)]",
+            buttonClassName,
+          ]
+            .filter(Boolean)
+            .join(" ")}
         >
           {item.icon}
           {/* The descenderless labels sit ~1px high in their line box; nudge

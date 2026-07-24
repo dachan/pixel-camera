@@ -74,6 +74,7 @@ export default function CameraTabs() {
                   items={CONTROL_TABS}
                   active={controlPanel}
                   onChange={setControlPanel}
+                  buttonClassName="h-10.5"
                 />
               </div>
             </div>

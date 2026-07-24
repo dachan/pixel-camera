@@ -71,7 +71,7 @@ export default function CameraControls({
         <Button
           onClick={onCapture}
           disabled={captureBusy}
-          className="flex items-center justify-center gap-1.5"
+          className="flex h-10.5 items-center justify-center gap-1.5"
         >
           <CaptureIcon />
           {/* Nudge the label down 1px so it doesn't read high beside the icon. */}
