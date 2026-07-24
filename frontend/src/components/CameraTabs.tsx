@@ -61,7 +61,7 @@ export default function CameraTabs() {
       <ButtonGroup items={TABS} active={active} onChange={setActive} />
       <div className="flex h-full min-h-0 w-full">
         {active === "camera" ? (
-          <div className="flex size-full gap-4">
+          <div className="flex size-full gap-4 pb-6">
             <div className="flex min-h-0 w-2/3 flex-col gap-4">
               <div className="flex min-h-0 items-start justify-start">
                 <CameraPreview
