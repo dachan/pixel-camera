@@ -3,9 +3,14 @@
 export default function Switch({
   checked,
   onChange,
+  // Track width, as a Tailwind class. Defaults to the standard w-14; callers
+  // can widen it (the knob and ON/OFF text are percentage-based, so they stay
+  // centred at any width).
+  widthClass = "w-14",
 }: {
   checked: boolean;
   onChange: (next: boolean) => void;
+  widthClass?: string;
 }) {
   return (
     <button
@@ -19,12 +24,16 @@ export default function Switch({
         event.stopPropagation();
         onChange(!checked);
       }}
-      className="relative h-8 w-14 shrink-0 rounded-md border border-stone-300 bg-white"
+      className={`relative h-8 shrink-0 rounded-md border border-stone-300 bg-white ${widthClass}`}
     >
       <span className="absolute inset-0 overflow-hidden rounded-[5px]">
         <span
           aria-hidden
-          className={`absolute inset-y-0 left-0 flex w-1/2 items-center justify-center bg-orange-500 text-[10px] leading-none font-semibold tracking-wide text-white transition-transform ${
+          // pt-[2px]: the all-caps label has no descenders, so a line-box-
+          // centred glyph reads as slightly high; the padding nudges it down
+          // ~1px. On the flex container it shifts the text without moving the
+          // orange background fill (which spans the full padding box).
+          className={`absolute inset-y-0 left-0 flex w-1/2 items-center justify-center bg-orange-500 pt-[2px] text-[10px] leading-none font-semibold tracking-wide text-white transition-transform ${
             checked ? "translate-x-0" : "-translate-x-full"
           }`}
         >
@@ -32,7 +41,8 @@ export default function Switch({
         </span>
         <span
           aria-hidden
-          className={`absolute inset-y-0 right-0 flex w-1/2 items-center justify-center text-[10px] leading-none font-semibold tracking-wide text-stone-400 transition-transform ${
+          // pt-[2px]: see the ON label above — nudges the caps down ~1px.
+          className={`absolute inset-y-0 right-0 flex w-1/2 items-center justify-center pt-[2px] text-[10px] leading-none font-semibold tracking-wide text-stone-400 transition-transform ${
             checked ? "translate-x-full" : "translate-x-0"
           }`}
         >
