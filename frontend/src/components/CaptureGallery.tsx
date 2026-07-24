@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import {
   captureThumbUrl,
   captureUrl,
@@ -21,9 +21,52 @@ export default function CaptureGallery() {
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
+  // Swipe navigation in the full-screen viewer. On the Pi kiosk a finger swipe
+  // arrives as an emulated-mouse drag, so we track pointer events rather than
+  // touch events (same reason as use-drag-scroll).
+  const swipeStart = useRef<{ x: number; y: number } | null>(null);
+  const swiped = useRef(false);
+  const SWIPE_MIN = 50; // px of horizontal travel before it counts as a swipe
+
+  const selectedIndex = selected ? captures.indexOf(selected) : -1;
+
+  function showAt(index: number) {
+    if (index < 0 || index >= captures.length) return;
+    setSelected(captures[index]);
+    setConfirmingDelete(false);
+  }
+
   function closeSelected() {
     setSelected(null);
     setConfirmingDelete(false);
+  }
+
+  function onViewerPointerDown(e: ReactPointerEvent) {
+    swipeStart.current = { x: e.clientX, y: e.clientY };
+    swiped.current = false;
+  }
+
+  function onViewerPointerUp(e: ReactPointerEvent) {
+    const start = swipeStart.current;
+    swipeStart.current = null;
+    if (!start) return;
+    const dx = e.clientX - start.x;
+    const dy = e.clientY - start.y;
+    // Horizontal intent only, so a vertical drag doesn't flip photos.
+    if (Math.abs(dx) > SWIPE_MIN && Math.abs(dx) > Math.abs(dy)) {
+      swiped.current = true; // swallow the trailing click so it doesn't close
+      showAt(selectedIndex + (dx < 0 ? 1 : -1));
+    }
+  }
+
+  function onViewerClick() {
+    // A horizontal swipe leaves little vertical travel, so DragScrollArea does
+    // not suppress this click — guard it here so a swipe never closes the view.
+    if (swiped.current) {
+      swiped.current = false;
+      return;
+    }
+    closeSelected();
   }
 
   function deleteSelected() {
@@ -107,7 +150,9 @@ export default function CaptureGallery() {
         <div
           role="dialog"
           aria-label={selected}
-          onClick={closeSelected}
+          onClick={onViewerClick}
+          onPointerDown={onViewerPointerDown}
+          onPointerUp={onViewerPointerUp}
           className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/95 p-4"
         >
           <div className="relative flex max-h-full max-w-full items-center justify-center">
