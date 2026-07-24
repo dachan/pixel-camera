@@ -8,6 +8,7 @@ import ExposureControls from "@/components/camera-controls/ExposureControls";
 import FocusControls from "@/components/camera-controls/FocusControls";
 import WbControls from "@/components/camera-controls/WbControls";
 import {
+  CaptureIcon,
   ExposureIcon,
   FocusIcon,
   WhiteBalanceIcon,
@@ -67,8 +68,16 @@ export default function CameraControls({
       </div>
 
       {showCaptureButton && (
-        <Button onClick={onCapture} disabled={captureBusy}>
-          {captureBusy ? "Capturing…" : "Capture"}
+        <Button
+          onClick={onCapture}
+          disabled={captureBusy}
+          className="flex items-center justify-center gap-1.5"
+        >
+          <CaptureIcon />
+          {/* Nudge the label down 1px so it doesn't read high beside the icon. */}
+          <span className="translate-y-px">
+            {captureBusy ? "Capturing…" : "Capture"}
+          </span>
         </Button>
       )}
       {captureError && (

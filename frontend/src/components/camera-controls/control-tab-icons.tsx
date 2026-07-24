@@ -1,6 +1,7 @@
-// Icons for the Exposure / Focus / White Balance control tabs. Drawn as one
-// cohesive stroke set (24x24, fill-none, stroke-2, round caps) to match the
-// app's other line icons (see Slider's LockIcon/DisabledIcon).
+// Icons for the camera controls (control tabs + Capture). Drawn as one
+// cohesive stroke set (24x24, fill-none, thin stroke, round caps) to match the
+// app's other line icons (see Slider's LockIcon/DisabledIcon). Any new icon
+// should reuse SVG_CLASS so it stays part of the family.
 
 const SVG_CLASS = "size-6 shrink-0 fill-none stroke-current stroke-[1.5]";
 
@@ -39,6 +40,22 @@ export function FocusIcon() {
       <path d="M20 15.5V17.5A2.5 2.5 0 0 1 17.5 20H15.5" />
       <path d="M8.5 20H6.5A2.5 2.5 0 0 1 4 17.5V15.5" />
       <circle cx="12" cy="12" r="2.5" />
+    </svg>
+  );
+}
+
+// Capture: a camera (the shutter action on the Capture button).
+export function CaptureIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      aria-hidden
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={SVG_CLASS}
+    >
+      <path d="M4.5 8.5A1.75 1.75 0 0 1 6.25 6.75H8L9.25 4.75H14.75L16 6.75H17.75A1.75 1.75 0 0 1 19.5 8.5V17A1.75 1.75 0 0 1 17.75 18.75H6.25A1.75 1.75 0 0 1 4.5 17Z" />
+      <circle cx="12" cy="12.75" r="3.25" />
     </svg>
   );
 }
