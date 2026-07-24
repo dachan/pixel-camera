@@ -26,6 +26,10 @@ const SliderLockableContext = createContext(true);
 // Press-and-hold duration (ms) that toggles a slider's lock.
 const LOCK_HOLD_MS = 1000;
 
+// Same zero-offset glow as inactive ButtonGroup buttons.
+const THUMB_FACE =
+  "bg-[radial-gradient(circle_at_50%_50%,#ffffff_0%,#ffffff_35%,#e7e5e4_100%)] shadow-[0_0_6px_rgb(0_0_0_/_0.24)]";
+
 const SliderLockContext = createContext<SliderLockContextValue | null>(null);
 
 function LockIcon() {
@@ -191,20 +195,20 @@ export function SliderInput({
                 "[direction:rtl] [writing-mode:vertical-lr]",
                 "[&::-moz-range-track]:h-full [&::-moz-range-track]:w-1.5 [&::-moz-range-track]:rounded-full [&::-moz-range-track]:border-0 [&::-moz-range-track]:bg-stone-300",
                 "[&::-webkit-slider-runnable-track]:h-full [&::-webkit-slider-runnable-track]:w-1.5 [&::-webkit-slider-runnable-track]:rounded-full [&::-webkit-slider-runnable-track]:border-0 [&::-webkit-slider-runnable-track]:bg-stone-300",
-                "[&::-moz-range-thumb]:size-12 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:bg-stone-100 [&::-moz-range-thumb]:shadow-[0_0_10px_rgb(0_0_0_/_0.18)]",
-                "[&::-webkit-slider-thumb]:-ml-5.25 [&::-webkit-slider-thumb]:size-12 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:border-0 [&::-webkit-slider-thumb]:bg-stone-100 [&::-webkit-slider-thumb]:shadow-[0_0_10px_rgb(0_0_0_/_0.18)]",
+                "[&::-moz-range-thumb]:size-12 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:bg-transparent [&::-moz-range-thumb]:shadow-none",
+                "[&::-webkit-slider-thumb]:-ml-5.25 [&::-webkit-slider-thumb]:size-12 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:border-0 [&::-webkit-slider-thumb]:bg-transparent [&::-webkit-slider-thumb]:shadow-none",
               ]
             : [
                 "block h-12 w-full min-w-0 flex-1",
                 "[&::-moz-range-track]:h-1.5 [&::-moz-range-track]:w-full [&::-moz-range-track]:rounded-full [&::-moz-range-track]:border-0 [&::-moz-range-track]:bg-stone-300",
                 "[&::-webkit-slider-runnable-track]:h-1.5 [&::-webkit-slider-runnable-track]:w-full [&::-webkit-slider-runnable-track]:rounded-full [&::-webkit-slider-runnable-track]:border-0 [&::-webkit-slider-runnable-track]:bg-stone-300",
-                "[&::-moz-range-thumb]:size-12 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:bg-stone-100 [&::-moz-range-thumb]:shadow-[0_0_10px_rgb(0_0_0_/_0.18)]",
-                "[&::-webkit-slider-thumb]:-mt-5.25 [&::-webkit-slider-thumb]:size-12 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:border-0 [&::-webkit-slider-thumb]:bg-stone-100 [&::-webkit-slider-thumb]:shadow-[0_0_10px_rgb(0_0_0_/_0.18)]",
+                "[&::-moz-range-thumb]:size-12 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:bg-transparent [&::-moz-range-thumb]:shadow-none",
+                "[&::-webkit-slider-thumb]:-mt-5.25 [&::-webkit-slider-thumb]:size-12 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:border-0 [&::-webkit-slider-thumb]:bg-transparent [&::-webkit-slider-thumb]:shadow-none",
               ],
           locked && "pointer-events-none opacity-60",
           "disabled:cursor-not-allowed disabled:opacity-50",
-          "disabled:[&::-moz-range-thumb]:bg-stone-100",
-          "disabled:[&::-webkit-slider-thumb]:bg-stone-100",
+          "disabled:[&::-moz-range-thumb]:bg-transparent",
+          "disabled:[&::-webkit-slider-thumb]:bg-transparent",
           className,
         ]
           .flat()
@@ -214,12 +218,13 @@ export function SliderInput({
           ? ({ orient: "vertical" } as InputHTMLAttributes<HTMLInputElement>)
           : {})}
       />
-      {!locked && thumbContent != null && (
+      {!locked && (
         <span
           aria-hidden
           style={thumbPosition}
           className={[
             "pointer-events-none absolute z-10 flex items-center justify-center rounded-full font-mono text-xs font-semibold text-stone-700",
+            THUMB_FACE,
             vertical
               ? "left-1/2 -translate-x-1/2 -translate-y-1/2"
               : "top-1/2 -translate-x-1/2 -translate-y-1/2",
@@ -235,7 +240,8 @@ export function SliderInput({
           aria-label="Slider locked. Press and hold for one second to unlock."
           style={thumbPosition}
           className={[
-            "absolute z-20 flex items-center justify-center rounded-full bg-stone-100 text-stone-800 shadow-[0_0_10px_rgb(0_0_0_/_0.18)]",
+            "absolute z-20 flex items-center justify-center rounded-full text-stone-800",
+            THUMB_FACE,
             vertical
               ? "left-1/2 -translate-x-1/2 -translate-y-1/2"
               : "top-1/2 -translate-x-1/2 -translate-y-1/2",
@@ -299,7 +305,7 @@ export default function Slider({
         <SliderLockContext value={lockContext}>
           <label className="flex w-full min-w-0 items-center gap-3">
             {label != null && (
-              <span className="inline-flex w-10 shrink-0 items-center gap-1 font-mono text-xs leading-none font-semibold text-stone-500">
+              <span className="inline-flex w-10 shrink-0 items-center gap-1 font-mono text-[11px] leading-none font-semibold text-stone-400">
                 <span className="truncate">{label}</span>
                 {locked && <LockIcon />}
               </span>
@@ -322,9 +328,9 @@ export default function Slider({
     <SliderLockableContext value={lockable}>
       <SliderLockContext value={lockContext}>
         <label className="flex h-full w-full min-w-0 flex-col items-center gap-4">
-          <div className="flex w-full min-w-0 flex-col items-center">
+          <div className="flex w-full min-w-0 flex-col items-center gap-1">
             {label != null && (
-              <span className="inline-flex max-w-full items-center gap-1 text-center font-mono text-xs leading-none font-semibold text-stone-500">
+              <span className="inline-flex max-w-full items-center gap-1 text-center font-mono text-[11px] leading-none font-semibold text-stone-400">
                 <span className="truncate">{label}</span>
                 {locked && <LockIcon />}
               </span>
