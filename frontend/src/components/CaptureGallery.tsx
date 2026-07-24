@@ -190,7 +190,10 @@ export default function CaptureGallery() {
                   event.stopPropagation();
                   deleteSelected();
                 }}
-                className="flex w-auto min-w-32 items-center justify-center gap-1.5 whitespace-nowrap"
+                // Fixed width so the button doesn't resize as the label swaps
+                // between Delete Photo / Confirm / Deleting…. min/max-width
+                // (not w-*) so it isn't overridden by the Button base w-full.
+                className="flex min-w-[160px] max-w-[160px] items-center justify-center gap-1.5 whitespace-nowrap"
               >
                 <DeleteIcon />
                 <span className="translate-y-px">
