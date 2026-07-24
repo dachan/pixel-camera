@@ -19,13 +19,29 @@ export default function Switch({
         event.stopPropagation();
         onChange(!checked);
       }}
-      className={`relative h-6 w-11 shrink-0 rounded-md border border-stone-300 transition ${
-        checked ? "bg-orange-500" : "bg-stone-200"
-      }`}
+      className="relative h-6 w-11 shrink-0 overflow-hidden rounded-md border border-stone-300 bg-white"
     >
       <span
-        className={`absolute top-1 h-3.5 w-3.5 rounded-full bg-white transition-all ${
-          checked ? "left-6" : "left-1"
+        aria-hidden
+        className={`absolute inset-y-0 left-0 flex w-1/2 items-center justify-center bg-orange-500 text-[8px] leading-none font-semibold tracking-wide text-white transition-transform ${
+          checked ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
+        ON
+      </span>
+      <span
+        aria-hidden
+        className={`absolute inset-y-0 right-0 flex w-1/2 items-center justify-center text-[8px] leading-none font-semibold tracking-wide text-stone-400 transition-transform ${
+          checked ? "translate-x-full" : "translate-x-0"
+        }`}
+      >
+        OFF
+      </span>
+      <span
+        className={`absolute top-1/2 left-0.75 z-10 h-3.5 w-3.5 rounded-full bg-orange-500 transition-transform ${
+          checked
+            ? "translate-x-5.5 -translate-y-1/2"
+            : "translate-x-0 -translate-y-1/2"
         }`}
       />
     </button>
