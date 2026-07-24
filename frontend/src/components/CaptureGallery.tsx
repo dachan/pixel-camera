@@ -155,12 +155,12 @@ export default function CaptureGallery() {
           onPointerUp={onViewerPointerUp}
           className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/95 p-4"
         >
-          <div className="pointer-events-none absolute top-3 left-1/2 flex max-w-[calc(100%-2rem)] -translate-x-1/2 items-center gap-2 rounded-md bg-stone-900/60 px-3 py-1 font-mono text-xs text-stone-300">
-            <span className="truncate">{selected}</span>
-            <span className="shrink-0 text-stone-400">
-              {selectedIndex + 1} / {captures.length}
-            </span>
-          </div>
+          <span className="pointer-events-none absolute bottom-4 left-4 z-10 max-w-[40%] truncate rounded-md bg-stone-900/60 px-3 py-1 font-mono text-xs text-stone-300">
+            {selected}
+          </span>
+          <span className="pointer-events-none absolute right-4 bottom-4 z-10 rounded-md bg-stone-900/60 px-3 py-1 font-mono text-xs text-stone-400">
+            {selectedIndex + 1} / {captures.length}
+          </span>
           <div className="relative flex max-h-full max-w-full items-center justify-center">
             <img
               src={captureUrl(selected)}
