@@ -73,8 +73,8 @@ export function CloseIcon() {
       strokeLinejoin="round"
       className={SVG_CLASS}
     >
-      <line x1="6.5" y1="6.5" x2="17.5" y2="17.5" />
-      <line x1="17.5" y1="6.5" x2="6.5" y2="17.5" />
+      <line x1="5.5" y1="5.5" x2="18.5" y2="18.5" />
+      <line x1="18.5" y1="5.5" x2="5.5" y2="18.5" />
     </svg>
   );
 }
