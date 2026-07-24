@@ -45,6 +45,21 @@ function LockIcon() {
   );
 }
 
+// Shown in the thumb of a disabled slider (e.g. Aperture on a fixed-aperture
+// camera) — a "prohibited" circle-slash marking the control as unsupported.
+function DisabledIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      aria-hidden
+      className="size-5 fill-none stroke-current stroke-2"
+    >
+      <circle cx="12" cy="12" r="8" />
+      <line x1="6.5" y1="6.5" x2="17.5" y2="17.5" />
+    </svg>
+  );
+}
+
 export function SliderInput({
   orientation = "vertical",
   className,
@@ -229,9 +244,13 @@ export function SliderInput({
               ? "left-1/2 -translate-x-1/2 -translate-y-1/2"
               : "top-1/2 -translate-x-1/2 -translate-y-1/2",
             thumbSize === 32 ? "size-8" : "size-12",
-          ].join(" ")}
+            // Dim the thumb and show a not-supported mark when disabled.
+            disabled && "text-stone-400 opacity-60",
+          ]
+            .filter(Boolean)
+            .join(" ")}
         >
-          {thumbContent}
+          {disabled ? <DisabledIcon /> : thumbContent}
         </span>
       )}
       {locked && (
