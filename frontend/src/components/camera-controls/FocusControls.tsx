@@ -1,7 +1,6 @@
 "use client";
 
-import { setFocus } from "@/lib/camera-api";
-import { useFocus, useSetFocus } from "@/lib/focus-context";
+import { useApplyFocus, useFocus } from "@/lib/focus-context";
 import Slider, { SliderInput } from "@/components/_shared/Slider";
 import Switch from "@/components/_shared/Switch";
 
@@ -13,17 +12,7 @@ export default function FocusControls({
   onPeakingChange?: (next: boolean) => void;
 }) {
   const focus = useFocus();
-  const setFocusState = useSetFocus();
-
-  function applyFocus(patch: {
-    af_mode?: "continuous" | "manual";
-    lens_position?: number;
-  }) {
-    setFocusState((prev) => (prev ? { ...prev, ...patch } : prev));
-    setFocus(patch)
-      .then(setFocusState)
-      .catch(() => {});
-  }
+  const applyFocus = useApplyFocus();
 
   if (!focus) {
     return <p className="text-sm text-stone-500">loading…</p>;
@@ -111,7 +100,11 @@ export default function FocusControls({
             <span className="font-mono text-xs leading-none font-semibold text-stone-500">
               Focus Peaking
             </span>
-            <Switch checked={peaking} onChange={onPeakingChange} />
+            <Switch
+              checked={peaking}
+              onChange={onPeakingChange}
+              widthClass="w-16"
+            />
           </div>
         )}
       </div>
