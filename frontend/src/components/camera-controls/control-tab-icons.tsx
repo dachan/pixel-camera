@@ -1,4 +1,4 @@
-// Icons for the camera controls (control tabs + Capture). Drawn as one
+// Shared app icons (camera controls, Capture, gallery actions). Drawn as one
 // cohesive stroke set (24x24, fill-none, thin stroke, round caps) to match the
 // app's other line icons (see Slider's LockIcon/DisabledIcon). Any new icon
 // should reuse SVG_CLASS so it stays part of the family.
@@ -40,6 +40,41 @@ export function FocusIcon() {
       <path d="M20 15.5V17.5A2.5 2.5 0 0 1 17.5 20H15.5" />
       <path d="M8.5 20H6.5A2.5 2.5 0 0 1 4 17.5V15.5" />
       <circle cx="12" cy="12" r="2.5" />
+    </svg>
+  );
+}
+
+// Delete: a trash can (the gallery's Delete Photo action).
+export function DeleteIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      aria-hidden
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={SVG_CLASS}
+    >
+      <line x1="4.5" y1="7" x2="19.5" y2="7" />
+      <path d="M9 7V5.5A1.5 1.5 0 0 1 10.5 4H13.5A1.5 1.5 0 0 1 15 5.5V7" />
+      <path d="M6.5 7 7.4 19.4A1.6 1.6 0 0 0 9 21H15A1.6 1.6 0 0 0 16.6 19.4L17.5 7" />
+      <line x1="10" y1="10.5" x2="10" y2="17.5" />
+      <line x1="14" y1="10.5" x2="14" y2="17.5" />
+    </svg>
+  );
+}
+
+// Close: an X (the gallery's Tap To Close action).
+export function CloseIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      aria-hidden
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={SVG_CLASS}
+    >
+      <line x1="6.5" y1="6.5" x2="17.5" y2="17.5" />
+      <line x1="17.5" y1="6.5" x2="6.5" y2="17.5" />
     </svg>
   );
 }

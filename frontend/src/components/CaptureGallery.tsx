@@ -11,6 +11,10 @@ import { errorMessage } from "@/lib/errors";
 import { usePolling } from "@/lib/use-polling";
 import DragScrollArea from "@/components/DragScrollArea";
 import Button from "@/components/_shared/Button";
+import {
+  CloseIcon,
+  DeleteIcon,
+} from "@/components/camera-controls/control-tab-icons";
 
 export default function CaptureGallery() {
   const [captures, setCaptures] = useState<string[]>([]);
@@ -184,13 +188,16 @@ export default function CaptureGallery() {
                   event.stopPropagation();
                   deleteSelected();
                 }}
-                className="w-auto min-w-32 whitespace-nowrap"
+                className="flex w-auto min-w-32 items-center justify-center gap-1.5 whitespace-nowrap"
               >
-                {deleting
-                  ? "Deleting…"
-                  : confirmingDelete
-                    ? "Confirm"
-                    : "Delete Photo"}
+                <DeleteIcon />
+                <span className="translate-y-px">
+                  {deleting
+                    ? "Deleting…"
+                    : confirmingDelete
+                      ? "Confirm"
+                      : "Delete Photo"}
+                </span>
               </Button>
               <Button
                 variant="secondary"
@@ -198,9 +205,10 @@ export default function CaptureGallery() {
                   event.stopPropagation();
                   closeSelected();
                 }}
-                className="w-auto min-w-32 whitespace-nowrap"
+                className="flex w-auto min-w-32 items-center justify-center gap-1.5 whitespace-nowrap"
               >
-                Tap To Close
+                <CloseIcon />
+                <span className="translate-y-px">Tap To Close</span>
               </Button>
             </div>
           </div>
