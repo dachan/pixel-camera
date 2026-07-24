@@ -100,11 +100,7 @@ export default function FocusControls({
             <span className="font-mono text-xs leading-none font-semibold text-stone-500">
               Focus Peaking
             </span>
-            <Switch
-              checked={peaking}
-              onChange={onPeakingChange}
-              widthClass="w-16"
-            />
+            <Switch checked={peaking} onChange={onPeakingChange} />
           </div>
         )}
       </div>

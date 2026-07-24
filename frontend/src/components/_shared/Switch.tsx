@@ -3,10 +3,10 @@
 export default function Switch({
   checked,
   onChange,
-  // Track width, as a Tailwind class. Defaults to the standard w-14; callers
-  // can widen it (the knob and ON/OFF text are percentage-based, so they stay
-  // centred at any width).
-  widthClass = "w-14",
+  // Track width, as a Tailwind class. Defaults to 72px; callers can override
+  // it (the knob and ON/OFF text are percentage-based, so they stay centred
+  // at any width).
+  widthClass = "w-[72px]",
 }: {
   checked: boolean;
   onChange: (next: boolean) => void;
@@ -24,31 +24,36 @@ export default function Switch({
         event.stopPropagation();
         onChange(!checked);
       }}
-      className={`relative h-8 shrink-0 rounded-md border border-stone-300 bg-white ${widthClass}`}
+      className={`relative h-8 shrink-0 rounded-md border-2 border-stone-300 bg-white ${widthClass}`}
     >
       <span className="absolute inset-0 overflow-hidden rounded-[5px]">
         <span
           aria-hidden
-          // pt-[2px]: the all-caps label has no descenders, so a line-box-
-          // centred glyph reads as slightly high; the padding nudges it down
-          // ~1px. On the flex container it shifts the text without moving the
-          // orange background fill (which spans the full padding box).
-          className={`absolute inset-y-0 left-0 flex w-1/2 items-center justify-center bg-orange-500 pt-[2px] text-[10px] leading-none font-semibold tracking-wide text-white transition-transform ${
+          // translate-y-px on the label: all-caps has no descenders, so a
+          // line-box-centred glyph reads slightly high; nudge text down ~1px
+          // without moving the orange fill.
+          className={`absolute inset-y-0 left-0 flex w-1/2 items-center justify-center bg-orange-500 text-[10px] leading-none font-semibold tracking-wide text-white transition-transform ${
             checked ? "translate-x-0" : "-translate-x-full"
           }`}
         >
-          ON
+          <span className="translate-y-px">ON</span>
         </span>
         <span
           aria-hidden
-          // pt-[2px]: see the ON label above — nudges the caps down ~1px.
-          className={`absolute inset-y-0 right-0 flex w-1/2 items-center justify-center pt-[2px] text-[10px] leading-none font-semibold tracking-wide text-stone-400 transition-transform ${
+          className={`absolute inset-y-0 right-0 flex w-1/2 items-center justify-center text-[10px] leading-none font-semibold tracking-wide text-stone-400 transition-transform ${
             checked ? "translate-x-full" : "translate-x-0"
           }`}
         >
-          OFF
+          <span className="translate-y-px">OFF</span>
         </span>
       </span>
+      {/* Center rule only when off — separates the knob half from OFF. */}
+      {!checked && (
+        <span
+          aria-hidden
+          className="pointer-events-none absolute top-1/2 left-1/2 z-[1] h-[60%] w-px -translate-x-1/2 -translate-y-1/2 bg-stone-300"
+        />
+      )}
       <span
         aria-hidden
         className="pointer-events-none absolute inset-0 z-[5] rounded-[5px] shadow-[inset_0_0_4px_rgb(0_0_0_/_0.2)]"
