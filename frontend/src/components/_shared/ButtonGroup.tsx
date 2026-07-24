@@ -47,7 +47,9 @@ export default function ButtonGroup<T extends string>({
           }`}
         >
           {item.icon}
-          <span className="min-w-0 truncate">{item.label}</span>
+          {/* The descenderless labels sit ~1px high in their line box; nudge
+              down so they read centred (matches the Button component). */}
+          <span className="min-w-0 translate-y-px truncate">{item.label}</span>
         </button>
       ))}
     </div>

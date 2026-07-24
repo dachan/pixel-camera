@@ -13,6 +13,7 @@ export default function Button({
   type = "button",
   variant = "primary",
   selected = false,
+  children,
   ...props
 }: ButtonHTMLAttributes<HTMLButtonElement> & {
   variant?: keyof typeof VARIANTS;
@@ -31,6 +32,15 @@ export default function Button({
         .filter(Boolean)
         .join(" ")}
       {...props}
-    />
+    >
+      {/* Plain-text labels sit ~1px high in their line box; nudge down so they
+          read vertically centred. Element children (e.g. an icon + label) lay
+          themselves out and are passed through untouched. */}
+      {typeof children === "string" ? (
+        <span className="inline-block translate-y-px">{children}</span>
+      ) : (
+        children
+      )}
+    </button>
   );
 }
