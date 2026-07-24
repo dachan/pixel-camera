@@ -167,18 +167,20 @@ export default function CaptureGallery() {
           onPointerUp={onViewerPointerUp}
           className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/95 p-4"
         >
-          <span className="pointer-events-none absolute bottom-4 left-4 z-10 max-w-[40%] truncate rounded-md bg-stone-900/60 px-3 py-1 font-mono text-xs text-stone-300">
-            {selected}
-          </span>
-          <span className="pointer-events-none absolute right-4 bottom-4 z-10 rounded-md bg-stone-900/60 px-3 py-1 font-mono text-xs text-stone-400">
-            {selectedIndex + 1} / {captures.length}
-          </span>
           <div className="relative flex max-h-full max-w-full items-center justify-center">
             <img
               src={captureUrl(selected)}
               alt={selected}
               className="max-h-full max-w-full rounded-md object-contain"
             />
+            {/* Positioned inside the image box (not the viewport) so the pills
+                sit on the photo's corners, not out on the letterbox. */}
+            <span className="pointer-events-none absolute bottom-3 left-3 z-10 max-w-[40%] truncate rounded-md bg-stone-900/60 px-3 py-1 font-mono text-xs text-stone-300">
+              {selected}
+            </span>
+            <span className="pointer-events-none absolute right-3 bottom-3 z-10 rounded-md bg-stone-900/60 px-3 py-1 font-mono text-xs text-stone-400">
+              {selectedIndex + 1} / {captures.length}
+            </span>
             <div className="absolute bottom-3 left-1/2 flex -translate-x-1/2 gap-2">
               <Button
                 variant="destructive"
