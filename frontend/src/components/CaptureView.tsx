@@ -212,14 +212,16 @@ export function CameraPreview({
             className="pointer-events-none absolute inset-0 h-full w-full object-contain"
           />
         )}
-        {focus?.af_mode === "manual" && showFocusPeaking && (
+        {showFocusPeaking && (
           // Focus peaking: an edge-detect + threshold SVG filter (defined
           // below) applied to a second copy of the same stream, screen-
           // blended over the base image so only strong edges add a bright
           // highlight — the rest of the filtered layer is black and
           // contributes nothing. GPU-composited by Chromium, so this adds
           // no backend encode cost (same MJPEG stream broadcast to a second
-          // listener) and negligible client cost.
+          // listener) and negligible client cost. Shown in both focus modes
+          // (auto and manual): the toggle is the single source of truth, so
+          // it also confirms what autofocus has locked onto, not just manual.
           <img
             src={streamSrc}
             alt=""
