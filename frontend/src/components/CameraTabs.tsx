@@ -95,10 +95,6 @@ export default function CameraTabs() {
                 showCaptureButton={showCaptureButton}
                 focusPeaking={focusPeaking}
                 onFocusPeakingChange={setFocusPeaking}
-                gridType={gridType}
-                onGridTypeChange={setGridType}
-                gridOpacity={gridOpacity}
-                onGridOpacityChange={setGridOpacity}
               />
             </div>
           </div>
@@ -110,6 +106,10 @@ export default function CameraTabs() {
           <CameraSettings
             showCaptureButton={showCaptureButton}
             onCaptureButtonChange={setShowCaptureButton}
+            gridType={gridType}
+            onGridTypeChange={setGridType}
+            gridOpacity={gridOpacity}
+            onGridOpacityChange={setGridOpacity}
           />
         )}
       </div>

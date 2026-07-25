@@ -6,16 +6,13 @@ import { errorMessage } from "@/lib/errors";
 import Button from "@/components/_shared/Button";
 import ExposureControls from "@/components/camera-controls/ExposureControls";
 import FocusControls from "@/components/camera-controls/FocusControls";
-import GridPicker from "@/components/camera-controls/GridPicker";
 import WbControls from "@/components/camera-controls/WbControls";
 import {
   CaptureIcon,
   ExposureIcon,
   FocusIcon,
-  GridIcon,
   WhiteBalanceIcon,
 } from "@/components/camera-controls/control-tab-icons";
-import type { GridOverlayId } from "@/lib/grid-overlays";
 
 // Tab list + active-tab type are shared with CameraTabs, which renders the
 // tab selector itself (under the live preview) while this component renders
@@ -25,7 +22,6 @@ export const CONTROL_TABS = [
   { id: "exposure", label: "Exposure", icon: <ExposureIcon /> },
   { id: "focus", label: "Focus", icon: <FocusIcon /> },
   { id: "wb", label: "White Balance", icon: <WhiteBalanceIcon /> },
-  { id: "grid", label: "Grid", icon: <GridIcon /> },
 ] as const;
 
 export type ControlTabId = (typeof CONTROL_TABS)[number]["id"];
@@ -35,19 +31,11 @@ export default function CameraControls({
   showCaptureButton = true,
   focusPeaking = true,
   onFocusPeakingChange,
-  gridType,
-  onGridTypeChange,
-  gridOpacity,
-  onGridOpacityChange,
 }: {
   panel: ControlTabId;
   showCaptureButton?: boolean;
   focusPeaking?: boolean;
   onFocusPeakingChange?: (next: boolean) => void;
-  gridType: GridOverlayId;
-  onGridTypeChange: (next: GridOverlayId) => void;
-  gridOpacity: number;
-  onGridOpacityChange: (next: number) => void;
 }) {
   const [captureBusy, setCaptureBusy] = useState(false);
   const [captureError, setCaptureError] = useState<string | null>(null);
@@ -73,13 +61,6 @@ export default function CameraControls({
           <FocusControls
             peaking={focusPeaking}
             onPeakingChange={onFocusPeakingChange}
-          />
-        ) : panel === "grid" ? (
-          <GridPicker
-            gridType={gridType}
-            onGridTypeChange={onGridTypeChange}
-            gridOpacity={gridOpacity}
-            onGridOpacityChange={onGridOpacityChange}
           />
         ) : (
           <WbControls className={showCaptureButton ? "mb-4" : ""} />
