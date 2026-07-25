@@ -5,24 +5,42 @@ import Slider, { SliderInput } from "@/components/_shared/Slider";
 import DragScrollArea from "@/components/DragScrollArea";
 import { GRID_OVERLAY_ITEMS, type GridOverlayId } from "@/lib/grid-overlays";
 
+const ROTATABLE_GRID_IDS = new Set<GridOverlayId>([
+  "golden-triangle",
+  "harmonic-armature",
+]);
+
 export default function GridPicker({
   gridType,
   onGridTypeChange,
   gridOpacity,
   onGridOpacityChange,
+  gridRotation,
+  onGridRotationChange,
 }: {
   gridType: GridOverlayId;
   onGridTypeChange: (next: GridOverlayId) => void;
   gridOpacity: number;
   onGridOpacityChange: (next: number) => void;
+  gridRotation: number;
+  onGridRotationChange: (next: number) => void;
 }) {
+  function selectGrid(next: GridOverlayId) {
+    if (next === gridType && ROTATABLE_GRID_IDS.has(next)) {
+      onGridRotationChange((gridRotation + 90) % 360);
+      return;
+    }
+    onGridTypeChange(next);
+    onGridRotationChange(0);
+  }
+
   return (
     <DragScrollArea className="h-full min-h-0">
       <div className="flex flex-col gap-4">
         <ButtonGroup
           items={GRID_OVERLAY_ITEMS}
           active={gridType}
-          onChange={onGridTypeChange}
+          onChange={selectGrid}
           columns={2}
         />
         {gridType !== "none" && (

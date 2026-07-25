@@ -43,6 +43,9 @@ export default function CameraTabs() {
   );
   // Grid line opacity (0-1), persisted locally.
   const [gridOpacity, setGridOpacity] = useStoredNumber("gridOpacity", 0.4);
+  // Triangle and harmonic grids can be quarter-turned by tapping their
+  // already-selected buttons. Keep the chosen orientation across reloads.
+  const [gridRotation, setGridRotation] = useStoredNumber("gridRotation", 0);
   // On-screen Capture button; defaults on. Off is for setups relying solely
   // on the physical GPIO shutter button, to keep the kiosk UI uncluttered.
   const [showCaptureButton, setShowCaptureButton] = useStoredBool(
@@ -77,6 +80,7 @@ export default function CameraTabs() {
                 <CameraPreview
                   gridType={gridType}
                   gridOpacity={gridOpacity}
+                  gridRotation={gridRotation}
                   showFocusPeaking={focusPeaking}
                 />
               </div>
@@ -99,6 +103,8 @@ export default function CameraTabs() {
                 onGridTypeChange={setGridType}
                 gridOpacity={gridOpacity}
                 onGridOpacityChange={setGridOpacity}
+                gridRotation={gridRotation}
+                onGridRotationChange={setGridRotation}
               />
             </div>
           </div>

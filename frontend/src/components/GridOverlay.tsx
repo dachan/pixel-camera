@@ -5,12 +5,15 @@ export default function GridOverlay({
   width,
   height,
   opacity,
+  rotation = 0,
 }: {
   id: GridOverlayId;
   width: number;
   height: number;
   /** 0–1. */
   opacity: number;
+  /** Clockwise rotation around the preview centre, in degrees. */
+  rotation?: number;
 }) {
   if (id === "none" || width <= 0 || height <= 0 || opacity <= 0) return null;
   const overlay = computeGridOverlay(id, width, height);
@@ -26,6 +29,7 @@ export default function GridOverlay({
       style={{ opacity }}
       strokeWidth={2}
     >
+      <g transform={rotation ? `rotate(${rotation} ${width / 2} ${height / 2})` : undefined}>
       {overlay.rects?.map((r, i) => (
         <rect
           key={`r${i}`}
@@ -59,6 +63,7 @@ export default function GridOverlay({
           vectorEffect="non-scaling-stroke"
         />
       ))}
+      </g>
     </svg>
   );
 }

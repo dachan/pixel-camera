@@ -39,6 +39,8 @@ export default function CameraControls({
   onGridTypeChange,
   gridOpacity,
   onGridOpacityChange,
+  gridRotation,
+  onGridRotationChange,
 }: {
   panel: ControlTabId;
   showCaptureButton?: boolean;
@@ -48,6 +50,8 @@ export default function CameraControls({
   onGridTypeChange: (next: GridOverlayId) => void;
   gridOpacity: number;
   onGridOpacityChange: (next: number) => void;
+  gridRotation: number;
+  onGridRotationChange: (next: number) => void;
 }) {
   const [captureBusy, setCaptureBusy] = useState(false);
   const [captureError, setCaptureError] = useState<string | null>(null);
@@ -80,6 +84,8 @@ export default function CameraControls({
             onGridTypeChange={onGridTypeChange}
             gridOpacity={gridOpacity}
             onGridOpacityChange={onGridOpacityChange}
+            gridRotation={gridRotation}
+            onGridRotationChange={onGridRotationChange}
           />
         ) : (
           <WbControls className={showCaptureButton ? "mb-4" : ""} />

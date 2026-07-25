@@ -59,11 +59,14 @@ type CaptureSession = {
 export function CameraPreview({
   gridType = "none",
   gridOpacity = 0.4,
+  gridRotation = 0,
   showFocusPeaking = true,
 }: {
   gridType?: GridOverlayId;
   /** 0–1. */
   gridOpacity?: number;
+  /** Clockwise overlay rotation in degrees. */
+  gridRotation?: number;
   showFocusPeaking?: boolean;
 }) {
   const { ref: containerRef, size: containerSize } =
@@ -240,6 +243,7 @@ export function CameraPreview({
           width={box.width}
           height={box.height}
           opacity={gridOpacity}
+          rotation={gridRotation}
         />
         {focusRing && (
           <svg
