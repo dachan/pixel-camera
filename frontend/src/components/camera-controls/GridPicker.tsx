@@ -39,11 +39,17 @@ export default function GridPicker({
     onGridRotationChange(0);
   }
 
+  const gridItems = GRID_OVERLAY_ITEMS.map((item) =>
+    item.id === gridType && gridRotation !== 0 && ROTATABLE_GRID_IDS.has(item.id)
+      ? { ...item, label: `${item.label} (R)` }
+      : item,
+  );
+
   return (
     <DragScrollArea className="h-full min-h-0">
       <div className="flex flex-col gap-4">
         <ButtonGroup
-          items={GRID_OVERLAY_ITEMS}
+          items={gridItems}
           active={gridType}
           onChange={selectGrid}
           columns={2}
