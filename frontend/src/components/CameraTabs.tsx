@@ -12,6 +12,9 @@ import CameraSettings from "@/components/CameraSettings";
 import ButtonGroup from "@/components/_shared/ButtonGroup";
 import { captureEventsUrl } from "@/lib/camera-api";
 import { useStoredBool } from "@/lib/use-stored-bool";
+import { useStoredString } from "@/lib/use-stored-string";
+import { useStoredNumber } from "@/lib/use-stored-number";
+import { GRID_OVERLAY_IDS, type GridOverlayId } from "@/lib/grid-overlays";
 import { useReloadOnRestart } from "@/lib/use-reload-on-restart";
 
 const TABS = [
@@ -31,8 +34,15 @@ export default function CameraTabs() {
   // Exposure/Focus/WB selector; its buttons render under the preview but
   // control the content panel beside it, so the state is lifted here.
   const [controlPanel, setControlPanel] = useState<ControlTabId>("focus");
-  // Rule-of-thirds overlay on the live preview; defaults on, persisted locally.
-  const [showGrid, setShowGrid] = useStoredBool("showGrid", true);
+  // Composition grid overlay on the live preview; defaults to rule-of-thirds,
+  // persisted locally.
+  const [gridType, setGridType] = useStoredString<GridOverlayId>(
+    "gridType",
+    "thirds",
+    GRID_OVERLAY_IDS,
+  );
+  // Grid line opacity (0-1), persisted locally.
+  const [gridOpacity, setGridOpacity] = useStoredNumber("gridOpacity", 0.4);
   // On-screen Capture button; defaults on. Off is for setups relying solely
   // on the physical GPIO shutter button, to keep the kiosk UI uncluttered.
   const [showCaptureButton, setShowCaptureButton] = useStoredBool(
@@ -65,7 +75,8 @@ export default function CameraTabs() {
             <div className="flex h-full min-h-0 w-2/3 flex-col gap-4">
               <div className="flex min-h-0 flex-1 items-start justify-start">
                 <CameraPreview
-                  showGrid={showGrid}
+                  gridType={gridType}
+                  gridOpacity={gridOpacity}
                   showFocusPeaking={focusPeaking}
                 />
               </div>
@@ -93,8 +104,10 @@ export default function CameraTabs() {
           <CaptureGallery />
         ) : (
           <CameraSettings
-            showGrid={showGrid}
-            onGridChange={setShowGrid}
+            gridType={gridType}
+            onGridTypeChange={setGridType}
+            gridOpacity={gridOpacity}
+            onGridOpacityChange={setGridOpacity}
             showCaptureButton={showCaptureButton}
             onCaptureButtonChange={setShowCaptureButton}
           />

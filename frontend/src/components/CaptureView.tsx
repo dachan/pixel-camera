@@ -9,6 +9,8 @@ import {
 } from "@/lib/camera-api";
 import { useElementSize } from "@/lib/use-element-size";
 import { useFocus } from "@/lib/focus-context";
+import GridOverlay from "@/components/GridOverlay";
+import type { GridOverlayId } from "@/lib/grid-overlays";
 
 const FLASH_MS = 600;
 const FOCUS_RING_MS = 900;
@@ -55,10 +57,13 @@ type CaptureSession = {
 };
 
 export function CameraPreview({
-  showGrid = false,
+  gridType = "none",
+  gridOpacity = 0.4,
   showFocusPeaking = true,
 }: {
-  showGrid?: boolean;
+  gridType?: GridOverlayId;
+  /** 0–1. */
+  gridOpacity?: number;
   showFocusPeaking?: boolean;
 }) {
   const { ref: containerRef, size: containerSize } =
@@ -230,14 +235,12 @@ export function CameraPreview({
             style={{ filter: "url(#focus-peaking)" }}
           />
         )}
-        {showGrid && (
-          <div aria-hidden className="pointer-events-none absolute inset-0">
-            <div className="absolute inset-y-0 left-1/3 w-px bg-white/40" />
-            <div className="absolute inset-y-0 left-2/3 w-px bg-white/40" />
-            <div className="absolute inset-x-0 top-1/3 h-px bg-white/40" />
-            <div className="absolute inset-x-0 top-2/3 h-px bg-white/40" />
-          </div>
-        )}
+        <GridOverlay
+          id={gridType}
+          width={box.width}
+          height={box.height}
+          opacity={gridOpacity}
+        />
         {focusRing && (
           <svg
             key={focusRing.key}

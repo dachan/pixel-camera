@@ -22,6 +22,7 @@ import SettingToggle from "@/components/SettingToggle";
 import Button from "@/components/_shared/Button";
 import ButtonGroup from "@/components/_shared/ButtonGroup";
 import Slider, { SliderInput } from "@/components/_shared/Slider";
+import { GRID_OVERLAY_ITEMS, type GridOverlayId } from "@/lib/grid-overlays";
 
 // Capture rotations offered in the UI (degrees clockwise).
 const ROTATION_ITEMS = [
@@ -53,13 +54,17 @@ function formatAgo(unixSeconds: number): string {
 }
 
 export default function CameraSettings({
-  showGrid,
-  onGridChange,
+  gridType,
+  onGridTypeChange,
+  gridOpacity,
+  onGridOpacityChange,
   showCaptureButton,
   onCaptureButtonChange,
 }: {
-  showGrid: boolean;
-  onGridChange: (next: boolean) => void;
+  gridType: GridOverlayId;
+  onGridTypeChange: (next: GridOverlayId) => void;
+  gridOpacity: number;
+  onGridOpacityChange: (next: number) => void;
   showCaptureButton: boolean;
   onCaptureButtonChange: (next: boolean) => void;
 }) {
@@ -251,12 +256,41 @@ export default function CameraSettings({
           </section>
         )}
 
-        <SettingToggle
-          title="Rule-Of-Thirds Grid"
-          description="Composition grid overlaid on the live preview."
-          checked={showGrid}
-          onChange={onGridChange}
-        />
+        <section className="flex flex-col gap-3">
+          <div className="flex flex-col gap-1">
+            <h2 className="text-sm font-semibold text-stone-700">
+              Composition Grid
+            </h2>
+            <p className="text-xs text-stone-500">
+              Overlay guide lines on the live preview.
+            </p>
+          </div>
+          <ButtonGroup
+            items={GRID_OVERLAY_ITEMS}
+            active={gridType}
+            onChange={onGridTypeChange}
+            columns={4}
+          />
+          {gridType !== "none" && (
+            <Slider
+              orientation="horizontal"
+              label="Grid"
+              value={`${Math.round(gridOpacity * 100)}%`}
+              lockable={false}
+            >
+              <SliderInput
+                orientation="horizontal"
+                min={5}
+                max={100}
+                step={5}
+                value={Math.round(gridOpacity * 100)}
+                onChange={(e) =>
+                  onGridOpacityChange(Number(e.target.value) / 100)
+                }
+              />
+            </Slider>
+          )}
+        </section>
 
         <SettingToggle
           title="On-Screen Capture Button"
