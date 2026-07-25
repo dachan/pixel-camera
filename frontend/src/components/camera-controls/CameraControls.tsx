@@ -82,7 +82,7 @@ export default function CameraControls({
             onGridOpacityChange={onGridOpacityChange}
           />
         ) : (
-          <WbControls />
+          <WbControls className={showCaptureButton ? "mb-4" : ""} />
         )}
       </div>
 

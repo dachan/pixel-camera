@@ -41,7 +41,7 @@ const PRESETS: { id: WhiteBalanceMode; label: string }[] = [
 const TEMP_FACTOR = 2.0;
 const TINT_FACTOR = 1.5;
 
-export default function WbControls() {
+export default function WbControls({ className = "" }: { className?: string }) {
   const [wb, setWb] = useState<WhiteBalanceState | null>(null);
   const [tuning, setTuning] = useState<CameraTuning | null>(null);
   const [tuningBusy, setTuningBusy] = useState(false);
@@ -153,13 +153,13 @@ export default function WbControls() {
   }
 
   if (!wb) {
-    return <p className="text-sm text-stone-500">loading…</p>;
+    return <p className={`text-sm text-stone-500 ${className}`}>loading…</p>;
   }
 
   const showWbSliders = tuning?.tuning !== "standard" || wb.mode === "manual";
 
   return (
-    <div className="flex h-full flex-col gap-3 overflow-y-auto">
+    <div className={`flex h-full flex-col gap-3 overflow-y-auto ${className}`}>
       {tuning?.available && (
         <div className="flex shrink-0 items-center justify-center">
           <ButtonGroup

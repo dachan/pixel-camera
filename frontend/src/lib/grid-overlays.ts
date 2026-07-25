@@ -146,33 +146,29 @@ function vanishingPoint(W: number, H: number): Segment[] {
   return segments;
 }
 
-// Successive golden sections measured in from one edge (φ⁻¹, φ⁻², φ⁻³ …),
-// mirrored onto the other edge. Lines pack progressively tighter toward both
-// edges of [0,1] and open out toward the middle — the reference "matrix"
-// card's framed look. `extra` adds deeper levels for a denser run.
-function fibonacciEdgeFractions(extra = 0): number[] {
-  const levels = 7 + extra;
+// Successive Fibonacci-number intervals from the edge: 1, 1, 2, 3, 5, 8,
+// 13. Mirroring those intervals leaves the final 13-unit section on either
+// side of centre, which produces the reference's distinctive four large
+// rectangles in the middle.
+function fibonacciMatrixFractions(): number[] {
+  const intervals = [1, 1, 2, 3, 5, 8, 13];
+  const half = intervals.reduce((total, value) => total + value, 0);
   const fromLeft: number[] = [];
-  for (let n = 1; n <= levels; n++) fromLeft.push(INV_PHI ** n);
-  const fromRight = fromLeft.map((f) => 1 - f);
-  return [...fromLeft, ...fromRight].filter((f) => f > 0.004 && f < 0.996);
+  let distance = 0;
+  for (const interval of intervals) {
+    distance += interval;
+    fromLeft.push(distance / (half * 2));
+  }
+  return [...fromLeft, ...fromLeft.slice(0, -1).map((f) => 1 - f).reverse()];
 }
 
 function fibonacciMatrix(W: number, H: number): Segment[] {
-  const fracs = fibonacciEdgeFractions();
-  // The reference matrix includes a central crosshair, with the mirrored
-  // Fibonacci bands expanding outward from it toward both edges.
-  const segments: Segment[] = [
-    [W / 2, 0, W / 2, H],
-    [0, H / 2, W, H / 2],
-  ];
+  const fracs = fibonacciMatrixFractions();
+  const segments: Segment[] = [];
   for (const f of fracs) {
     segments.push([W * f, 0, W * f, H]);
   }
-  // The frame is wider than it is tall, so the same φ progression yields
-  // fewer usable rows than columns; run the vertical axis a level deeper so
-  // the cell sizes stay comparable in both directions.
-  for (const f of fibonacciEdgeFractions(1)) {
+  for (const f of fracs) {
     segments.push([0, H * f, W, H * f]);
   }
   return segments;
