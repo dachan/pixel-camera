@@ -10,6 +10,10 @@ const ROTATABLE_GRID_IDS = new Set<GridOverlayId>([
   "harmonic-armature",
 ]);
 
+function rotationStep(id: GridOverlayId): number {
+  return id === "golden-triangle" ? 180 : 90;
+}
+
 export default function GridPicker({
   gridType,
   onGridTypeChange,
@@ -27,7 +31,7 @@ export default function GridPicker({
 }) {
   function selectGrid(next: GridOverlayId) {
     if (next === gridType && ROTATABLE_GRID_IDS.has(next)) {
-      onGridRotationChange((gridRotation + 90) % 360);
+      onGridRotationChange((gridRotation + rotationStep(next)) % 360);
       return;
     }
     onGridTypeChange(next);
