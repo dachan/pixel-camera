@@ -164,27 +164,28 @@ function vanishingPoint(W: number, H: number): Segment[] {
   return targets.map(([x, y]) => [cx, cy, x, y]);
 }
 
-function fibonacciMatrix(W: number, H: number): Segment[] {
-  // Dense vertical lines from repeated golden subdivision, crossed by just
-  // the two horizontal thirds — matches the reference "matrix" card, which
-  // is dense on one axis and plain on the other.
-  const fracs = new Set<number>([0, 1]);
-  function subdivide(a: number, b: number, depth: number) {
-    if (depth <= 0) return;
+function goldenSubdivisionFractions(depth: number): number[] {
+  const fracs = new Set<number>();
+  function subdivide(a: number, b: number, remaining: number) {
+    if (remaining <= 0) return;
     const t = a + (b - a) * INV_PHI2;
     fracs.add(t);
-    subdivide(a, t, depth - 1);
-    subdivide(t, b, depth - 1);
+    subdivide(a, t, remaining - 1);
+    subdivide(t, b, remaining - 1);
   }
-  subdivide(0, 1, 4);
+  subdivide(0, 1, depth);
+  return [...fracs].filter((f) => f > 0.001 && f < 0.999);
+}
 
+function fibonacciMatrix(W: number, H: number): Segment[] {
+  // A full grid — vertical AND horizontal lines, both from repeated golden
+  // subdivision — the "matrix" of golden-ratio cells the name implies.
+  const fracs = goldenSubdivisionFractions(4);
   const segments: Segment[] = [];
   for (const f of fracs) {
-    if (f <= 0.001 || f >= 0.999) continue;
     segments.push([W * f, 0, W * f, H]);
+    segments.push([0, H * f, W, H * f]);
   }
-  segments.push([0, H / 3, W, H / 3]);
-  segments.push([0, (2 * H) / 3, W, (2 * H) / 3]);
   return segments;
 }
 
