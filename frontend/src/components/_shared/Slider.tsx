@@ -324,7 +324,11 @@ export default function Slider({
         <SliderLockContext value={lockContext}>
           <label className="flex w-full min-w-0 items-center gap-3">
             {label != null && (
-              <span className="inline-flex w-10 shrink-0 items-center gap-1 font-mono text-[11px] leading-none font-semibold text-stone-400">
+              <span
+                className={`inline-flex shrink-0 items-center gap-1 font-mono text-[11px] leading-none font-semibold text-stone-400 ${
+                  locked ? "w-12" : "w-10"
+                }`}
+              >
                 <span className="truncate">{label}</span>
                 {locked && <LockIcon />}
               </span>
