@@ -8,10 +8,11 @@ import { GRID_OVERLAY_ITEMS, type GridOverlayId } from "@/lib/grid-overlays";
 const ROTATABLE_GRID_IDS = new Set<GridOverlayId>([
   "golden-triangle",
   "harmonic-armature",
+  "fibonacci-spiral",
 ]);
 
 function rotationStep(id: GridOverlayId): number {
-  return id === "golden-triangle" ? 180 : 90;
+  return id === "golden-triangle" || id === "fibonacci-spiral" ? 180 : 90;
 }
 
 export default function GridPicker({
