@@ -6,6 +6,7 @@ import { errorMessage } from "@/lib/errors";
 import Button from "@/components/_shared/Button";
 import ExposureControls from "@/components/camera-controls/ExposureControls";
 import FocusControls from "@/components/camera-controls/FocusControls";
+import GridPicker from "@/components/camera-controls/GridPicker";
 import WbControls from "@/components/camera-controls/WbControls";
 import {
   CaptureIcon,
@@ -13,6 +14,7 @@ import {
   FocusIcon,
   WhiteBalanceIcon,
 } from "@/components/camera-controls/control-tab-icons";
+import type { GridOverlayId } from "@/lib/grid-overlays";
 
 // Tab list + active-tab type are shared with CameraTabs, which renders the
 // tab selector itself (under the live preview) while this component renders
@@ -31,14 +33,33 @@ export default function CameraControls({
   showCaptureButton = true,
   focusPeaking = true,
   onFocusPeakingChange,
+  gridType,
+  onGridTypeChange,
+  gridOpacity,
+  onGridOpacityChange,
 }: {
   panel: ControlTabId;
   showCaptureButton?: boolean;
   focusPeaking?: boolean;
   onFocusPeakingChange?: (next: boolean) => void;
+  gridType: GridOverlayId;
+  onGridTypeChange: (next: GridOverlayId) => void;
+  gridOpacity: number;
+  onGridOpacityChange: (next: number) => void;
 }) {
   const [captureBusy, setCaptureBusy] = useState(false);
   const [captureError, setCaptureError] = useState<string | null>(null);
+  // The grid picker takes over the Focus panel; leaving Focus (or Camera
+  // entirely) should always land back on the normal Focus slider, not a
+  // stale picker. Adjusted during render (React's recommended pattern for
+  // resetting state on a prop change) rather than in an effect, so the
+  // panel never flashes a stale picker before an effect can catch up.
+  const [gridPickerOpen, setGridPickerOpen] = useState(false);
+  const [trackedPanel, setTrackedPanel] = useState(panel);
+  if (panel !== trackedPanel) {
+    setTrackedPanel(panel);
+    if (panel !== "focus") setGridPickerOpen(false);
+  }
 
   async function onCapture() {
     setCaptureBusy(true);
@@ -52,6 +73,20 @@ export default function CameraControls({
     }
   }
 
+  if (panel === "focus" && gridPickerOpen) {
+    return (
+      <section className="h-full w-full">
+        <GridPicker
+          gridType={gridType}
+          onGridTypeChange={onGridTypeChange}
+          gridOpacity={gridOpacity}
+          onGridOpacityChange={onGridOpacityChange}
+          onBack={() => setGridPickerOpen(false)}
+        />
+      </section>
+    );
+  }
+
   return (
     <section className="flex h-full w-full flex-col gap-8">
       <div className="min-h-0 flex-1">
@@ -61,6 +96,7 @@ export default function CameraControls({
           <FocusControls
             peaking={focusPeaking}
             onPeakingChange={onFocusPeakingChange}
+            onOpenGridPicker={() => setGridPickerOpen(true)}
           />
         ) : (
           <WbControls />
