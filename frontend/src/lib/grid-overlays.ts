@@ -30,7 +30,6 @@ export type GridOverlay = {
   segments: Segment[];
   rects?: Rect[];
   arcs?: string[];
-  dot?: { x: number; y: number };
 };
 
 const PHI = 1.618033988749895;
@@ -231,9 +230,12 @@ function fibonacciDiagonals(W: number, H: number): Segment[] {
   ];
 }
 
-// Nested squares spiralling inward (left, top, right, bottom, repeating),
-// each with a quarter-circle arc — the classic golden-spiral construction
-// generalized to any rectangle.
+// Nested squares spiralling inward, each with a quarter-circle arc — the
+// classic golden-spiral construction generalized to any rectangle. Each cut
+// always removes a square from whichever side is currently longer (never
+// the already-short side), alternating left/right or top/bottom each time
+// that axis comes up — a fixed left→top→right→bottom rotation degenerates
+// to zero height/width on a non-golden aspect like 16:9.
 function fibonacciSpiral(W: number, H: number): { rects: Rect[]; arcs: string[] } {
   const rects: Rect[] = [];
   const arcs: string[] = [];
@@ -241,43 +243,46 @@ function fibonacciSpiral(W: number, H: number): { rects: Rect[]; arcs: string[] 
   let y = 0;
   let w = W;
   let h = H;
+  let cutLeft = true;
+  let cutTop = true;
 
-  for (let i = 0; i < 7 && w > 1 && h > 1; i++) {
+  for (let i = 0; i < 12 && w > 1 && h > 1; i++) {
     const s = Math.min(w, h);
     let sqX: number, sqY: number;
     let p1: [number, number], p2: [number, number];
 
-    switch (i % 4) {
-      case 0: // cut left column
+    if (w >= h) {
+      if (cutLeft) {
         sqX = x;
         sqY = y;
         p1 = [x, y];
         p2 = [x + s, y + s];
         x += s;
         w -= s;
-        break;
-      case 1: // cut top row
+      } else {
+        sqX = x + w - s;
+        sqY = y;
+        p1 = [x + w - s, y];
+        p2 = [x + w, y + s];
+        w -= s;
+      }
+      cutLeft = !cutLeft;
+    } else {
+      if (cutTop) {
         sqX = x;
         sqY = y;
         p1 = [x + s, y];
         p2 = [x, y + s];
         y += s;
         h -= s;
-        break;
-      case 2: // cut right column
-        sqX = x + w - s;
-        sqY = y;
-        p1 = [x + w - s, y];
-        p2 = [x + w, y + s];
-        w -= s;
-        break;
-      default: // cut bottom row
+      } else {
         sqX = x;
         sqY = y + h - s;
         p1 = [x + s, y + h - s];
         p2 = [x, y + h];
         h -= s;
-        break;
+      }
+      cutTop = !cutTop;
     }
 
     rects.push({ x: sqX, y: sqY, w: s, h: s });
@@ -292,36 +297,35 @@ export function computeGridOverlay(
   W: number,
   H: number,
 ): GridOverlay {
-  const center = { x: W / 2, y: H / 2 };
   switch (id) {
     case "none":
       return { segments: [] };
     case "thirds":
-      return { segments: thirds(W, H), dot: center };
+      return { segments: thirds(W, H) };
     case "fibonacci":
-      return { segments: fibonacciGrid(W, H), dot: center };
+      return { segments: fibonacciGrid(W, H) };
     case "harmonic-armature":
       return { segments: harmonicArmature(W, H) };
     case "golden-triangle":
       return { segments: goldenTriangle(W, H) };
     case "fibonacci-spiral": {
       const { rects, arcs } = fibonacciSpiral(W, H);
-      return { segments: [], rects, arcs, dot: center };
+      return { segments: [], rects, arcs };
     }
     case "dynamic-sqrt2":
       return { segments: dynamicSymmetry(W, H, 2) };
     case "vanishing-point":
       return { segments: vanishingPoint(W, H) };
     case "fibonacci-matrix":
-      return { segments: fibonacciMatrix(W, H), dot: center };
+      return { segments: fibonacciMatrix(W, H) };
     case "dynamic-sqrt3":
       return { segments: dynamicSymmetry(W, H, 3) };
     case "square-diagonals": {
       const { segments, rects } = squareDiagonals(W, H);
-      return { segments, rects, dot: center };
+      return { segments, rects };
     }
     case "fibonacci-diagonals":
-      return { segments: fibonacciDiagonals(W, H), dot: center };
+      return { segments: fibonacciDiagonals(W, H) };
     case "dynamic-sqrt4":
       return { segments: dynamicSymmetry(W, H, 4) };
   }
