@@ -59,6 +59,15 @@ export default function GridOverlay({
           vectorEffect="non-scaling-stroke"
         />
       ))}
+      {overlay.dot && (
+        <circle
+          cx={overlay.dot.x}
+          cy={overlay.dot.y}
+          r={Math.max(3, Math.min(width, height) * 0.006)}
+          fill="white"
+          stroke="none"
+        />
+      )}
     </svg>
   );
 }

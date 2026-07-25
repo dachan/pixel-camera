@@ -30,6 +30,7 @@ export type GridOverlay = {
   segments: Segment[];
   rects?: Rect[];
   arcs?: string[];
+  dot?: { x: number; y: number };
 };
 
 const PHI = 1.618033988749895;
@@ -59,22 +60,47 @@ function fibonacciGrid(W: number, H: number): Segment[] {
 }
 
 function harmonicArmature(W: number, H: number): Segment[] {
-  const topMid: [number, number] = [W / 2, 0];
-  const bottomMid: [number, number] = [W / 2, H];
-  const leftMid: [number, number] = [0, H / 2];
-  const rightMid: [number, number] = [W, H / 2];
-  return [
-    [0, 0, W, H],
-    [W, 0, 0, H],
-    [0, 0, ...rightMid],
-    [0, 0, ...bottomMid],
-    [W, 0, ...leftMid],
-    [W, 0, ...bottomMid],
-    [W, H, ...leftMid],
-    [W, H, ...topMid],
-    [0, H, ...rightMid],
-    [0, H, ...topMid],
+  // Each corner woven to the two thirds-points on each of its two far
+  // sides — a dense interlocking star, not just the plain diagonals.
+  const corners: [number, number][] = [
+    [0, 0],
+    [W, 0],
+    [W, H],
+    [0, H],
   ];
+  const farSidePoints: [number, number][][] = [
+    [
+      [W, H / 3],
+      [W, (2 * H) / 3],
+      [W / 3, H],
+      [(2 * W) / 3, H],
+    ], // for TL: right side + bottom side
+    [
+      [0, H / 3],
+      [0, (2 * H) / 3],
+      [W / 3, H],
+      [(2 * W) / 3, H],
+    ], // for TR: left side + bottom side
+    [
+      [0, H / 3],
+      [0, (2 * H) / 3],
+      [W / 3, 0],
+      [(2 * W) / 3, 0],
+    ], // for BR: left side + top side
+    [
+      [W, H / 3],
+      [W, (2 * H) / 3],
+      [W / 3, 0],
+      [(2 * W) / 3, 0],
+    ], // for BL: right side + top side
+  ];
+  const segments: Segment[] = [];
+  corners.forEach((corner, i) => {
+    for (const target of farSidePoints[i]) {
+      segments.push([corner[0], corner[1], target[0], target[1]]);
+    }
+  });
+  return segments;
 }
 
 function goldenTriangle(W: number, H: number): Segment[] {
@@ -100,13 +126,24 @@ function goldenTriangle(W: number, H: number): Segment[] {
 }
 
 function dynamicSymmetry(W: number, H: number, n: number): Segment[] {
+  // Root-N rectangle construction: divide into N columns AND N rows, with
+  // both diagonals drawn across every column and every row — the woven
+  // grid classically used to find dynamic-symmetry diagonals.
   const colW = W / n;
+  const rowH = H / n;
   const segments: Segment[] = [];
   for (let i = 0; i < n; i++) {
     const x0 = i * colW;
     const x1 = (i + 1) * colW;
     segments.push([x0, 0, x1, H]);
     segments.push([x1, 0, x0, H]);
+    if (i > 0) segments.push([x0, 0, x0, H]);
+
+    const y0 = i * rowH;
+    const y1 = (i + 1) * rowH;
+    segments.push([0, y0, W, y1]);
+    segments.push([0, y1, W, y0]);
+    if (i > 0) segments.push([0, y0, W, y0]);
   }
   return segments;
 }
@@ -128,6 +165,9 @@ function vanishingPoint(W: number, H: number): Segment[] {
 }
 
 function fibonacciMatrix(W: number, H: number): Segment[] {
+  // Dense vertical lines from repeated golden subdivision, crossed by just
+  // the two horizontal thirds — matches the reference "matrix" card, which
+  // is dense on one axis and plain on the other.
   const fracs = new Set<number>([0, 1]);
   function subdivide(a: number, b: number, depth: number) {
     if (depth <= 0) return;
@@ -136,25 +176,35 @@ function fibonacciMatrix(W: number, H: number): Segment[] {
     subdivide(a, t, depth - 1);
     subdivide(t, b, depth - 1);
   }
-  subdivide(0, 1, 3);
+  subdivide(0, 1, 4);
 
   const segments: Segment[] = [];
   for (const f of fracs) {
     if (f <= 0.001 || f >= 0.999) continue;
     segments.push([W * f, 0, W * f, H]);
-    segments.push([0, H * f, W, H * f]);
   }
+  segments.push([0, H / 3, W, H / 3]);
+  segments.push([0, (2 * H) / 3, W, (2 * H) / 3]);
   return segments;
 }
 
-function squareDiagonals(W: number, H: number): { segments: Segment[]; rects: Rect[] } {
+function squareDiagonals(
+  W: number,
+  H: number,
+): { segments: Segment[]; rects: Rect[] } {
+  // A square centered in the frame (dashed) plus diagonals of both the full
+  // rectangle and the inner square, forming the crossed "bowtie" look.
   const side = Math.min(W, H);
+  const x = (W - side) / 2;
+  const y = (H - side) / 2;
   return {
     segments: [
       [0, 0, W, H],
       [W, 0, 0, H],
+      [x, y, x + side, y + side],
+      [x + side, y, x, y + side],
     ],
-    rects: [{ x: 0, y: 0, w: side, h: side, dashed: true }],
+    rects: [{ x, y, w: side, h: side, dashed: true }],
   };
 }
 
@@ -239,35 +289,36 @@ export function computeGridOverlay(
   W: number,
   H: number,
 ): GridOverlay {
+  const center = { x: W / 2, y: H / 2 };
   switch (id) {
     case "none":
       return { segments: [] };
     case "thirds":
-      return { segments: thirds(W, H) };
+      return { segments: thirds(W, H), dot: center };
     case "fibonacci":
-      return { segments: fibonacciGrid(W, H) };
+      return { segments: fibonacciGrid(W, H), dot: center };
     case "harmonic-armature":
       return { segments: harmonicArmature(W, H) };
     case "golden-triangle":
       return { segments: goldenTriangle(W, H) };
     case "fibonacci-spiral": {
       const { rects, arcs } = fibonacciSpiral(W, H);
-      return { segments: [], rects, arcs };
+      return { segments: [], rects, arcs, dot: center };
     }
     case "dynamic-sqrt2":
       return { segments: dynamicSymmetry(W, H, 2) };
     case "vanishing-point":
       return { segments: vanishingPoint(W, H) };
     case "fibonacci-matrix":
-      return { segments: fibonacciMatrix(W, H) };
+      return { segments: fibonacciMatrix(W, H), dot: center };
     case "dynamic-sqrt3":
       return { segments: dynamicSymmetry(W, H, 3) };
     case "square-diagonals": {
       const { segments, rects } = squareDiagonals(W, H);
-      return { segments, rects };
+      return { segments, rects, dot: center };
     }
     case "fibonacci-diagonals":
-      return { segments: fibonacciDiagonals(W, H) };
+      return { segments: fibonacciDiagonals(W, H), dot: center };
     case "dynamic-sqrt4":
       return { segments: dynamicSymmetry(W, H, 4) };
   }

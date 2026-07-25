@@ -67,7 +67,7 @@ export default function CameraTabs() {
   }, []);
 
   return (
-    <div className="flex min-h-0 w-full flex-1 flex-col gap-4 overflow-hidden px-3 pb-3">
+    <div className="flex min-h-0 w-full flex-1 flex-col gap-4 overflow-hidden px-3">
       <ButtonGroup items={TABS} active={active} onChange={setActive} />
       <div className="flex h-full min-h-0 w-full">
         {active === "camera" ? (
