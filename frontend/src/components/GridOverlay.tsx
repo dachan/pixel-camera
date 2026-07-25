@@ -17,6 +17,15 @@ export default function GridOverlay({
 }) {
   if (id === "none" || width <= 0 || height <= 0 || opacity <= 0) return null;
   const overlay = computeGridOverlay(id, width, height);
+  // The golden-triangle construction is unchanged by a literal half-turn:
+  // its two perpendiculars simply swap places. Its alternate orientation is
+  // therefore a horizontal flip, which changes the main diagonal visibly.
+  const transform =
+    id === "golden-triangle" && rotation === 180
+      ? `translate(${width} 0) scale(-1 1)`
+      : rotation
+        ? `rotate(${rotation} ${width / 2} ${height / 2})`
+        : undefined;
 
   return (
     <svg
@@ -29,7 +38,7 @@ export default function GridOverlay({
       style={{ opacity }}
       strokeWidth={2}
     >
-      <g transform={rotation ? `rotate(${rotation} ${width / 2} ${height / 2})` : undefined}>
+      <g transform={transform}>
       {overlay.rects?.map((r, i) => (
         <rect
           key={`r${i}`}
