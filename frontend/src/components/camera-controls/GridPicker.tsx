@@ -21,44 +21,42 @@ export default function GridPicker({
   onBack: () => void;
 }) {
   return (
-    <div className="flex h-full flex-col gap-4">
-      <Button
-        variant="secondary"
-        onClick={onBack}
-        className="flex h-10.5 shrink-0 items-center justify-center gap-1.5"
-      >
-        <BackIcon />
-        <span className="translate-y-px">Back</span>
-      </Button>
-      <DragScrollArea className="min-h-0 flex-1">
-        <div className="flex flex-col gap-4">
-          <ButtonGroup
-            items={GRID_OVERLAY_ITEMS}
-            active={gridType}
-            onChange={onGridTypeChange}
-            columns={2}
-          />
-          {gridType !== "none" && (
-            <Slider
+    <DragScrollArea className="h-full min-h-0">
+      <div className="flex flex-col gap-4">
+        <ButtonGroup
+          items={GRID_OVERLAY_ITEMS}
+          active={gridType}
+          onChange={onGridTypeChange}
+          columns={2}
+        />
+        {gridType !== "none" && (
+          <Slider
+            orientation="horizontal"
+            label="Grid"
+            value={`${Math.round(gridOpacity * 100)}%`}
+            lockable={false}
+          >
+            <SliderInput
               orientation="horizontal"
-              label="Grid"
-              value={`${Math.round(gridOpacity * 100)}%`}
-              lockable={false}
-            >
-              <SliderInput
-                orientation="horizontal"
-                min={5}
-                max={100}
-                step={5}
-                value={Math.round(gridOpacity * 100)}
-                onChange={(e) =>
-                  onGridOpacityChange(Number(e.target.value) / 100)
-                }
-              />
-            </Slider>
-          )}
-        </div>
-      </DragScrollArea>
-    </div>
+              min={5}
+              max={100}
+              step={5}
+              value={Math.round(gridOpacity * 100)}
+              onChange={(e) =>
+                onGridOpacityChange(Number(e.target.value) / 100)
+              }
+            />
+          </Slider>
+        )}
+        <Button
+          variant="secondary"
+          onClick={onBack}
+          className="flex h-10.5 items-center justify-center gap-1.5"
+        >
+          <BackIcon />
+          <span className="translate-y-px">Back</span>
+        </Button>
+      </div>
+    </DragScrollArea>
   );
 }

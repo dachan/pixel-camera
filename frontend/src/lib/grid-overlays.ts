@@ -146,21 +146,16 @@ function vanishingPoint(W: number, H: number): Segment[] {
   return segments;
 }
 
-// Cumulative Fibonacci proportions from one edge, mirrored onto the other —
-// lines pack tightly near both edges of [0,1] and open up toward the
-// middle, matching the reference "matrix" card's framed look.
-function fibonacciEdgeFractions(): number[] {
-  const fibs = [1, 1, 2, 3, 5, 8, 13];
-  let sum = 0;
-  const cumulative: number[] = [];
-  for (const f of fibs) {
-    sum += f;
-    cumulative.push(sum);
-  }
-  const total = sum;
-  const fromLeft = cumulative.slice(0, -1).map((c) => c / total);
+// Successive golden sections measured in from one edge (φ⁻¹, φ⁻², φ⁻³ …),
+// mirrored onto the other edge. Lines pack progressively tighter toward both
+// edges of [0,1] and open out toward the middle — the reference "matrix"
+// card's framed look. `extra` adds deeper levels for a denser run.
+function fibonacciEdgeFractions(extra = 0): number[] {
+  const levels = 7 + extra;
+  const fromLeft: number[] = [];
+  for (let n = 1; n <= levels; n++) fromLeft.push(INV_PHI ** n);
   const fromRight = fromLeft.map((f) => 1 - f);
-  return [...fromLeft, ...fromRight].filter((f) => f > 0.001 && f < 0.999);
+  return [...fromLeft, ...fromRight].filter((f) => f > 0.004 && f < 0.996);
 }
 
 function fibonacciMatrix(W: number, H: number): Segment[] {
@@ -168,32 +163,32 @@ function fibonacciMatrix(W: number, H: number): Segment[] {
   const segments: Segment[] = [];
   for (const f of fracs) {
     segments.push([W * f, 0, W * f, H]);
+  }
+  // The frame is wider than it is tall, so the same φ progression yields
+  // fewer usable rows than columns; run the vertical axis a level deeper so
+  // the cell sizes stay comparable in both directions.
+  for (const f of fibonacciEdgeFractions(1)) {
     segments.push([0, H * f, W, H * f]);
   }
   return segments;
 }
 
-function squareDiagonals(
-  W: number,
-  H: number,
-): { segments: Segment[]; rects: Rect[] } {
-  // The two largest squares that fit the frame — flush to each end, so they
-  // overlap in the middle — drawn dashed, with the diagonals of each square
-  // plus the diagonals of the whole rectangle.
+function squareDiagonals(W: number, H: number): Segment[] {
+  // The two largest squares that fit the frame, flush to each end so they
+  // overlap in the middle. Only their diagonals are drawn (plus the whole
+  // frame's) — the square outlines themselves stay off the viewfinder.
   const side = Math.min(W, H);
   const landscape = W >= H;
-  // Offsets of the two squares along the long axis.
-  const a = 0;
-  const b = (landscape ? W : H) - side;
+  const offset = (landscape ? W : H) - side;
 
   const squares: Rect[] = landscape
     ? [
-        { x: a, y: 0, w: side, h: side, dashed: true },
-        { x: b, y: 0, w: side, h: side, dashed: true },
+        { x: 0, y: 0, w: side, h: side },
+        { x: offset, y: 0, w: side, h: side },
       ]
     : [
-        { x: 0, y: a, w: side, h: side, dashed: true },
-        { x: 0, y: b, w: side, h: side, dashed: true },
+        { x: 0, y: 0, w: side, h: side },
+        { x: 0, y: offset, w: side, h: side },
       ];
 
   const segments: Segment[] = [
@@ -205,30 +200,33 @@ function squareDiagonals(
     segments.push([s.x + s.w, s.y, s.x, s.y + s.h]);
   }
 
-  return { segments, rects: squares };
+  return segments;
 }
 
 function fibonacciDiagonals(W: number, H: number): Segment[] {
-  // Every corner joined to both golden-section points on the opposite long
-  // side — a broad symmetric star whose crossings mark the φ divisions.
-  const segments: Segment[] = [];
+  // Cut the frame at both golden sections on its long axis, then draw both
+  // diagonals of every sub-rectangle those cuts make, plus the frame's own.
+  // The sub-rectangles have distinctly different proportions, so their
+  // diagonals fan out into a wide star instead of hugging the main diagonal.
+  const segments: Segment[] = [
+    [0, 0, W, H],
+    [W, 0, 0, H],
+  ];
+
+  const addBoth = (x0: number, y0: number, x1: number, y1: number) => {
+    segments.push([x0, y0, x1, y1]);
+    segments.push([x1, y0, x0, y1]);
+  };
+
   if (W >= H) {
-    const yA = H * INV_PHI2;
-    const yB = H * INV_PHI;
-    for (const cy of [0, H]) {
-      segments.push([0, cy, W, yA]);
-      segments.push([0, cy, W, yB]);
-      segments.push([W, cy, 0, yA]);
-      segments.push([W, cy, 0, yB]);
+    for (const cut of [W * INV_PHI2, W * INV_PHI]) {
+      addBoth(0, 0, cut, H);
+      addBoth(cut, 0, W, H);
     }
   } else {
-    const xA = W * INV_PHI2;
-    const xB = W * INV_PHI;
-    for (const cx of [0, W]) {
-      segments.push([cx, 0, xA, H]);
-      segments.push([cx, 0, xB, H]);
-      segments.push([cx, H, xA, 0]);
-      segments.push([cx, H, xB, 0]);
+    for (const cut of [H * INV_PHI2, H * INV_PHI]) {
+      addBoth(0, 0, W, cut);
+      addBoth(0, cut, W, H);
     }
   }
   return segments;
@@ -337,10 +335,8 @@ export function computeGridOverlay(
       return { segments: vanishingPoint(W, H) };
     case "fibonacci-matrix":
       return { segments: fibonacciMatrix(W, H) };
-    case "square-diagonals": {
-      const { segments, rects } = squareDiagonals(W, H);
-      return { segments, rects };
-    }
+    case "square-diagonals":
+      return { segments: squareDiagonals(W, H) };
     case "fibonacci-diagonals":
       return { segments: fibonacciDiagonals(W, H) };
   }

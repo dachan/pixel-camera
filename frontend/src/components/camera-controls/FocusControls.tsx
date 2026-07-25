@@ -1,6 +1,7 @@
 "use client";
 
 import { useApplyFocus, useFocus } from "@/lib/focus-context";
+import Button from "@/components/_shared/Button";
 import Slider, { SliderInput } from "@/components/_shared/Slider";
 import Switch from "@/components/_shared/Switch";
 import { GridIcon } from "@/components/camera-controls/control-tab-icons";
@@ -96,16 +97,14 @@ export default function FocusControls({
               <Switch checked={peaking} onChange={onPeakingChange} />
             </div>
             {onOpenGridPicker && (
-              <button
-                type="button"
+              <Button
+                variant="secondary"
                 onClick={onOpenGridPicker}
-                className="flex flex-col items-center gap-2 text-stone-500"
+                className="flex items-center justify-center gap-2"
               >
-                <span className="font-mono text-xs leading-none font-semibold">
-                  Composition Grid
-                </span>
                 <GridIcon />
-              </button>
+                <span className="translate-y-px">Grid</span>
+              </Button>
             )}
           </div>
         )}

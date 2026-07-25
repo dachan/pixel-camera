@@ -73,24 +73,20 @@ export default function CameraControls({
     }
   }
 
-  if (panel === "focus" && gridPickerOpen) {
-    return (
-      <section className="h-full w-full">
-        <GridPicker
-          gridType={gridType}
-          onGridTypeChange={onGridTypeChange}
-          gridOpacity={gridOpacity}
-          onGridOpacityChange={onGridOpacityChange}
-          onBack={() => setGridPickerOpen(false)}
-        />
-      </section>
-    );
-  }
+  const gridPicker = panel === "focus" && gridPickerOpen;
 
   return (
     <section className="flex h-full w-full flex-col gap-8">
       <div className="min-h-0 flex-1">
-        {panel === "exposure" ? (
+        {gridPicker ? (
+          <GridPicker
+            gridType={gridType}
+            onGridTypeChange={onGridTypeChange}
+            gridOpacity={gridOpacity}
+            onGridOpacityChange={onGridOpacityChange}
+            onBack={() => setGridPickerOpen(false)}
+          />
+        ) : panel === "exposure" ? (
           <ExposureControls />
         ) : panel === "focus" ? (
           <FocusControls
@@ -103,7 +99,9 @@ export default function CameraControls({
         )}
       </div>
 
-      {showCaptureButton && (
+      {/* The picker carries its own Back button, so Capture stands down
+          while it is open. */}
+      {showCaptureButton && !gridPicker && (
         <Button
           onClick={onCapture}
           disabled={captureBusy}
