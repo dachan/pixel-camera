@@ -164,21 +164,29 @@ function vanishingPoint(W: number, H: number): Segment[] {
   return targets.map(([x, y]) => [cx, cy, x, y]);
 }
 
-function fibonacciMatrix(W: number, H: number): Segment[] {
-  // Vertical lines follow a phi-ratio fan from the left edge — each one at
-  // W·φ⁻ⁿ, so they pack tightly near the edge and spread out further in,
-  // matching the reference's lopsided dense-then-sparse grid. Horizontal
-  // lines are a plain even row grid.
-  const segments: Segment[] = [];
-  for (let n = 1; n <= 9; n++) {
-    const f = INV_PHI ** n;
-    if (f <= 0.001 || f >= 0.999) continue;
-    segments.push([W * f, 0, W * f, H]);
+// Cumulative Fibonacci proportions from one edge, mirrored onto the other —
+// lines pack tightly near both edges of [0,1] and open up toward the
+// middle, matching the reference "matrix" card's framed look.
+function fibonacciEdgeFractions(): number[] {
+  const fibs = [1, 1, 2, 3, 5, 8, 13];
+  let sum = 0;
+  const cumulative: number[] = [];
+  for (const f of fibs) {
+    sum += f;
+    cumulative.push(sum);
   }
-  const rows = 6;
-  for (let i = 1; i < rows; i++) {
-    const y = (H * i) / rows;
-    segments.push([0, y, W, y]);
+  const total = sum;
+  const fromLeft = cumulative.slice(0, -1).map((c) => c / total);
+  const fromRight = fromLeft.map((f) => 1 - f);
+  return [...fromLeft, ...fromRight].filter((f) => f > 0.001 && f < 0.999);
+}
+
+function fibonacciMatrix(W: number, H: number): Segment[] {
+  const fracs = fibonacciEdgeFractions();
+  const segments: Segment[] = [];
+  for (const f of fracs) {
+    segments.push([W * f, 0, W * f, H]);
+    segments.push([0, H * f, W, H * f]);
   }
   return segments;
 }
