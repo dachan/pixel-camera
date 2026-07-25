@@ -10,13 +10,11 @@ export const GRID_OVERLAY_ITEMS = [
   { id: "harmonic-armature", label: "Harmonic Armature" },
   { id: "golden-triangle", label: "Golden Triangle" },
   { id: "fibonacci-spiral", label: "Golden Spiral" },
-  { id: "dynamic-sqrt2", label: "Dynamic Symmetry √2" },
+  { id: "dynamic-sqrt2", label: "Dynamic Symmetry" },
   { id: "vanishing-point", label: "Vanishing Point" },
   { id: "fibonacci-matrix", label: "Fibonacci Matrix" },
-  { id: "dynamic-sqrt3", label: "Dynamic Symmetry √3" },
   { id: "square-diagonals", label: "Square Diagonals" },
   { id: "fibonacci-diagonals", label: "Fibonacci Diagonals" },
-  { id: "dynamic-sqrt4", label: "Dynamic Symmetry √4" },
 ] as const;
 
 export type GridOverlayId = (typeof GRID_OVERLAY_ITEMS)[number]["id"];
@@ -59,47 +57,31 @@ function fibonacciGrid(W: number, H: number): Segment[] {
 }
 
 function harmonicArmature(W: number, H: number): Segment[] {
-  // Each corner woven to the two thirds-points on each of its two far
-  // sides — a dense interlocking star, not just the plain diagonals.
-  const corners: [number, number][] = [
-    [0, 0],
-    [W, 0],
-    [W, H],
-    [0, H],
+  // The classic armature of the rectangle: both full diagonals, both
+  // centrelines, and every corner joined to the midpoint of each of the two
+  // sides it does not touch (the eight half-diagonals).
+  const midTop: [number, number] = [W / 2, 0];
+  const midBottom: [number, number] = [W / 2, H];
+  const midLeft: [number, number] = [0, H / 2];
+  const midRight: [number, number] = [W, H / 2];
+
+  return [
+    // Full diagonals.
+    [0, 0, W, H],
+    [W, 0, 0, H],
+    // Centrelines.
+    [W / 2, 0, W / 2, H],
+    [0, H / 2, W, H / 2],
+    // Half-diagonals: each corner to the midpoints of its two far sides.
+    [0, 0, ...midRight],
+    [0, 0, ...midBottom],
+    [W, 0, ...midLeft],
+    [W, 0, ...midBottom],
+    [W, H, ...midLeft],
+    [W, H, ...midTop],
+    [0, H, ...midRight],
+    [0, H, ...midTop],
   ];
-  const farSidePoints: [number, number][][] = [
-    [
-      [W, H / 3],
-      [W, (2 * H) / 3],
-      [W / 3, H],
-      [(2 * W) / 3, H],
-    ], // for TL: right side + bottom side
-    [
-      [0, H / 3],
-      [0, (2 * H) / 3],
-      [W / 3, H],
-      [(2 * W) / 3, H],
-    ], // for TR: left side + bottom side
-    [
-      [0, H / 3],
-      [0, (2 * H) / 3],
-      [W / 3, 0],
-      [(2 * W) / 3, 0],
-    ], // for BR: left side + top side
-    [
-      [W, H / 3],
-      [W, (2 * H) / 3],
-      [W / 3, 0],
-      [(2 * W) / 3, 0],
-    ], // for BL: right side + top side
-  ];
-  const segments: Segment[] = [];
-  corners.forEach((corner, i) => {
-    for (const target of farSidePoints[i]) {
-      segments.push([corner[0], corner[1], target[0], target[1]]);
-    }
-  });
-  return segments;
 }
 
 function goldenTriangle(W: number, H: number): Segment[] {
@@ -125,42 +107,43 @@ function goldenTriangle(W: number, H: number): Segment[] {
 }
 
 function dynamicSymmetry(W: number, H: number, n: number): Segment[] {
-  // Root-N rectangle construction: divide into N columns AND N rows, with
-  // both diagonals drawn across every column and every row — the woven
-  // grid classically used to find dynamic-symmetry diagonals.
+  // Root-N rectangle: N equal columns (the reciprocals), with the whole
+  // rectangle's two diagonals plus both diagonals of every column. The
+  // crossings of those diagonals are the dynamic-symmetry "eyes".
   const colW = W / n;
-  const rowH = H / n;
-  const segments: Segment[] = [];
+  const segments: Segment[] = [
+    [0, 0, W, H],
+    [W, 0, 0, H],
+    [0, H / 2, W, H / 2],
+  ];
   for (let i = 0; i < n; i++) {
     const x0 = i * colW;
     const x1 = (i + 1) * colW;
     segments.push([x0, 0, x1, H]);
     segments.push([x1, 0, x0, H]);
     if (i > 0) segments.push([x0, 0, x0, H]);
-
-    const y0 = i * rowH;
-    const y1 = (i + 1) * rowH;
-    segments.push([0, y0, W, y1]);
-    segments.push([0, y1, W, y0]);
-    if (i > 0) segments.push([0, y0, W, y0]);
   }
   return segments;
 }
 
 function vanishingPoint(W: number, H: number): Segment[] {
+  // A radial fan of evenly spaced angles from the centre, each ray cast out
+  // to whichever edge it reaches first.
   const cx = W / 2;
   const cy = H / 2;
-  const targets: [number, number][] = [
-    [0, 0],
-    [W, 0],
-    [W, H],
-    [0, H],
-    [W / 2, 0],
-    [W / 2, H],
-    [0, H / 2],
-    [W, H / 2],
-  ];
-  return targets.map(([x, y]) => [cx, cy, x, y]);
+  const rays = 16;
+  const segments: Segment[] = [];
+  for (let i = 0; i < rays; i++) {
+    const theta = (2 * Math.PI * i) / rays;
+    const dx = Math.cos(theta);
+    const dy = Math.sin(theta);
+    // Distance to the nearest vertical / horizontal edge along this ray.
+    const tx = Math.abs(dx) < 1e-9 ? Infinity : cx / Math.abs(dx);
+    const ty = Math.abs(dy) < 1e-9 ? Infinity : cy / Math.abs(dy);
+    const t = Math.min(tx, ty);
+    segments.push([cx, cy, cx + dx * t, cy + dy * t]);
+  }
+  return segments;
 }
 
 // Cumulative Fibonacci proportions from one edge, mirrored onto the other —
@@ -194,99 +177,135 @@ function squareDiagonals(
   W: number,
   H: number,
 ): { segments: Segment[]; rects: Rect[] } {
-  // A square centered in the frame (dashed) plus diagonals of both the full
-  // rectangle and the inner square, forming the crossed "bowtie" look.
+  // The two largest squares that fit the frame — flush to each end, so they
+  // overlap in the middle — drawn dashed, with the diagonals of each square
+  // plus the diagonals of the whole rectangle.
   const side = Math.min(W, H);
-  const x = (W - side) / 2;
-  const y = (H - side) / 2;
-  return {
-    segments: [
-      [0, 0, W, H],
-      [W, 0, 0, H],
-      [x, y, x + side, y + side],
-      [x + side, y, x, y + side],
-    ],
-    rects: [{ x, y, w: side, h: side, dashed: true }],
-  };
+  const landscape = W >= H;
+  // Offsets of the two squares along the long axis.
+  const a = 0;
+  const b = (landscape ? W : H) - side;
+
+  const squares: Rect[] = landscape
+    ? [
+        { x: a, y: 0, w: side, h: side, dashed: true },
+        { x: b, y: 0, w: side, h: side, dashed: true },
+      ]
+    : [
+        { x: 0, y: a, w: side, h: side, dashed: true },
+        { x: 0, y: b, w: side, h: side, dashed: true },
+      ];
+
+  const segments: Segment[] = [
+    [0, 0, W, H],
+    [W, 0, 0, H],
+  ];
+  for (const s of squares) {
+    segments.push([s.x, s.y, s.x + s.w, s.y + s.h]);
+    segments.push([s.x + s.w, s.y, s.x, s.y + s.h]);
+  }
+
+  return { segments, rects: squares };
 }
 
 function fibonacciDiagonals(W: number, H: number): Segment[] {
-  let rectA: Rect;
-  let rectB: Rect;
+  // Every corner joined to both golden-section points on the opposite long
+  // side — a broad symmetric star whose crossings mark the φ divisions.
+  const segments: Segment[] = [];
   if (W >= H) {
-    const gw = Math.min(W, H * PHI);
-    rectA = { x: 0, y: 0, w: gw, h: H };
-    rectB = { x: W - gw, y: 0, w: gw, h: H };
+    const yA = H * INV_PHI2;
+    const yB = H * INV_PHI;
+    for (const cy of [0, H]) {
+      segments.push([0, cy, W, yA]);
+      segments.push([0, cy, W, yB]);
+      segments.push([W, cy, 0, yA]);
+      segments.push([W, cy, 0, yB]);
+    }
   } else {
-    const gh = Math.min(H, W * PHI);
-    rectA = { x: 0, y: 0, w: W, h: gh };
-    rectB = { x: 0, y: H - gh, w: W, h: gh };
+    const xA = W * INV_PHI2;
+    const xB = W * INV_PHI;
+    for (const cx of [0, W]) {
+      segments.push([cx, 0, xA, H]);
+      segments.push([cx, 0, xB, H]);
+      segments.push([cx, H, xA, 0]);
+      segments.push([cx, H, xB, 0]);
+    }
   }
-  return [
-    [rectA.x, rectA.y, rectA.x + rectA.w, rectA.y + rectA.h],
-    [rectA.x, rectA.y + rectA.h, rectA.x + rectA.w, rectA.y],
-    [rectB.x, rectB.y, rectB.x + rectB.w, rectB.y + rectB.h],
-    [rectB.x, rectB.y + rectB.h, rectB.x + rectB.w, rectB.y],
-  ];
+  return segments;
 }
 
-// Nested squares spiralling inward, each with a quarter-circle arc — the
-// classic golden-spiral construction generalized to any rectangle. Each cut
-// always removes a square from whichever side is currently longer (never
-// the already-short side), alternating left/right or top/bottom each time
-// that axis comes up — a fixed left→top→right→bottom rotation degenerates
-// to zero height/width on a non-golden aspect like 16:9.
+// The golden spiral only tiles exactly inside a φ:1 rectangle, so inscribe
+// the largest one that fits the frame (flush to the right / bottom, leaving
+// the leftover strip at the start) and subdivide that. Squares are then cut
+// in a fixed left → top → right → bottom rotation, which keeps consecutive
+// quarter-arcs meeting end-to-end instead of jumping.
 function fibonacciSpiral(W: number, H: number): { rects: Rect[]; arcs: string[] } {
-  const rects: Rect[] = [];
-  const arcs: string[] = [];
-  let x = 0;
-  let y = 0;
-  let w = W;
-  let h = H;
-  let cutLeft = true;
-  let cutTop = true;
+  // Inscribed golden rectangle, matching the frame's orientation.
+  let gx: number, gy: number, gw: number, gh: number;
+  if (W / H >= PHI) {
+    gh = H;
+    gw = H * PHI;
+    gx = W - gw;
+    gy = 0;
+  } else {
+    gw = W;
+    gh = W * PHI;
+    if (gh > H) {
+      gh = H;
+      gw = H / PHI;
+    }
+    gx = 0;
+    gy = H - gh;
+  }
 
-  for (let i = 0; i < 12 && w > 1 && h > 1; i++) {
+  const rects: Rect[] = [{ x: gx, y: gy, w: gw, h: gh }];
+  const arcs: string[] = [];
+
+  let x = gx;
+  let y = gy;
+  let w = gw;
+  let h = gh;
+  // 0 = left, 1 = top, 2 = right, 3 = bottom.
+  let side = w >= h ? 0 : 1;
+
+  for (let i = 0; i < 10 && w > 0.5 && h > 0.5; i++) {
     const s = Math.min(w, h);
-    let sqX: number, sqY: number;
+    let sq: Rect;
+    // Arc endpoints, and the square corner the quarter-circle is centred on.
     let p1: [number, number], p2: [number, number];
 
-    if (w >= h) {
-      if (cutLeft) {
-        sqX = x;
-        sqY = y;
-        p1 = [x, y];
-        p2 = [x + s, y + s];
+    switch (side) {
+      case 0: // square at the left, remainder to the right
+        sq = { x, y, w: s, h: s };
+        p1 = [x, y + s]; // bottom-left
+        p2 = [x + s, y]; // top-right  (centre: top-left)
         x += s;
         w -= s;
-      } else {
-        sqX = x + w - s;
-        sqY = y;
-        p1 = [x + w - s, y];
-        p2 = [x + w, y + s];
-        w -= s;
-      }
-      cutLeft = !cutLeft;
-    } else {
-      if (cutTop) {
-        sqX = x;
-        sqY = y;
-        p1 = [x + s, y];
-        p2 = [x, y + s];
+        break;
+      case 1: // square at the top, remainder below
+        sq = { x, y, w: s, h: s };
+        p1 = [x, y]; // top-left
+        p2 = [x + s, y + s]; // bottom-right (centre: top-right)
         y += s;
         h -= s;
-      } else {
-        sqX = x;
-        sqY = y + h - s;
-        p1 = [x + s, y + h - s];
-        p2 = [x, y + h];
+        break;
+      case 2: // square at the right, remainder to the left
+        sq = { x: x + w - s, y, w: s, h: s };
+        p1 = [x + w, y]; // top-right
+        p2 = [x + w - s, y + s]; // bottom-left (centre: bottom-right)
+        w -= s;
+        break;
+      default: // square at the bottom, remainder above
+        sq = { x, y: y + h - s, w: s, h: s };
+        p1 = [x + s, y + h]; // bottom-right
+        p2 = [x, y + h - s]; // top-left (centre: bottom-left)
         h -= s;
-      }
-      cutTop = !cutTop;
+        break;
     }
 
-    rects.push({ x: sqX, y: sqY, w: s, h: s });
+    rects.push(sq);
     arcs.push(`M ${p1[0]} ${p1[1]} A ${s} ${s} 0 0 1 ${p2[0]} ${p2[1]}`);
+    side = (side + 1) % 4;
   }
 
   return { rects, arcs };
@@ -318,15 +337,11 @@ export function computeGridOverlay(
       return { segments: vanishingPoint(W, H) };
     case "fibonacci-matrix":
       return { segments: fibonacciMatrix(W, H) };
-    case "dynamic-sqrt3":
-      return { segments: dynamicSymmetry(W, H, 3) };
     case "square-diagonals": {
       const { segments, rects } = squareDiagonals(W, H);
       return { segments, rects };
     }
     case "fibonacci-diagonals":
       return { segments: fibonacciDiagonals(W, H) };
-    case "dynamic-sqrt4":
-      return { segments: dynamicSymmetry(W, H, 4) };
   }
 }
