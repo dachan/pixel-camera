@@ -24,6 +24,7 @@ export default function GridOverlay({
       viewBox={`0 0 ${width} ${height}`}
       preserveAspectRatio="none"
       style={{ opacity }}
+      strokeWidth={2}
     >
       {overlay.rects?.map((r, i) => (
         <rect
