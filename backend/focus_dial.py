@@ -10,6 +10,7 @@ from __future__ import annotations
 import logging
 import os
 import threading
+import time
 
 logger = logging.getLogger(__name__)
 
@@ -17,6 +18,7 @@ DEFAULT_CLK_PIN = 23
 DEFAULT_DT_PIN = 24
 DEFAULT_SWITCH_PIN = 25
 DEFAULT_STEP = 0.5
+SWITCH_DEBOUNCE_S = 0.35
 
 # Valid one-bit quadrature transitions. The sign convention can be flipped
 # without editing code when a particular encoder's clockwise direction differs.
@@ -64,6 +66,7 @@ def start_focus_dial(camera):
         handle, dt_pin
     )
     transition_total = 0
+    last_switch_at = 0.0
 
     def move_focus(amount: int) -> None:
         if not camera.focus_available():
@@ -96,8 +99,14 @@ def start_focus_dial(camera):
         move_focus(amount * direction)
 
     def on_switch(chip, gpio, level, tick) -> None:
+        nonlocal last_switch_at
         # A press alternates AF and manual. The focus model freezes the live
         # AF position when entering manual, so this never causes a lens jump.
+        now = time.monotonic()
+        with lock:
+            if now - last_switch_at < SWITCH_DEBOUNCE_S:
+                return
+            last_switch_at = now
         try:
             if not camera.focus_available():
                 return
