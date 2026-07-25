@@ -72,8 +72,8 @@ export default function CameraTabs() {
       <div className="flex h-full min-h-0 w-full">
         {active === "camera" ? (
           <div className="flex size-full gap-4">
-            <div className="flex h-full min-h-0 w-2/3 flex-col gap-4">
-              <div className="flex min-h-0 items-start justify-start">
+            <div className="flex h-full min-h-0 w-2/3 flex-col gap-8">
+              <div className="flex min-h-0 flex-1 items-start justify-start">
                 <CameraPreview
                   gridType={gridType}
                   gridOpacity={gridOpacity}

@@ -95,8 +95,7 @@ export function CaptureIcon() {
   );
 }
 
-// Composition grid: a rounded frame divided by rule-of-thirds lines (the
-// "choose a grid" entry point on the Focus panel).
+// Composition grid: a rounded frame divided by rule-of-thirds lines.
 export function GridIcon() {
   return (
     <svg
@@ -111,21 +110,6 @@ export function GridIcon() {
       <line x1="14.5" y1="4.5" x2="14.5" y2="19.5" />
       <line x1="3.5" y1="9.5" x2="20.5" y2="9.5" />
       <line x1="3.5" y1="14.5" x2="20.5" y2="14.5" />
-    </svg>
-  );
-}
-
-// Back: a left-pointing chevron (returns from the grid picker to Focus).
-export function BackIcon() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      aria-hidden
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={SVG_CLASS}
-    >
-      <path d="M14.5 5.5 8 12l6.5 6.5" />
     </svg>
   );
 }

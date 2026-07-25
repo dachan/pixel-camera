@@ -5,16 +5,16 @@
 
 export const GRID_OVERLAY_ITEMS = [
   { id: "none", label: "None" },
-  { id: "thirds", label: "Rule of Thirds" },
-  { id: "fibonacci", label: "Fibonacci Grid" },
-  { id: "harmonic-armature", label: "Harmonic Armature" },
-  { id: "golden-triangle", label: "Golden Triangle" },
-  { id: "fibonacci-spiral", label: "Golden Spiral" },
-  { id: "dynamic-sqrt2", label: "Dynamic Symmetry" },
-  { id: "vanishing-point", label: "Vanishing Point" },
-  { id: "fibonacci-matrix", label: "Fibonacci Matrix" },
-  { id: "square-diagonals", label: "Square Diagonals" },
-  { id: "fibonacci-diagonals", label: "Fibonacci Diagonals" },
+  { id: "thirds", label: "Thirds" },
+  { id: "fibonacci", label: "Fibonacci" },
+  { id: "harmonic-armature", label: "Harmonic" },
+  { id: "golden-triangle", label: "Triangle" },
+  { id: "fibonacci-spiral", label: "Spiral" },
+  { id: "dynamic-sqrt2", label: "Dynamic" },
+  { id: "vanishing-point", label: "Vanishing" },
+  { id: "fibonacci-matrix", label: "Matrix" },
+  { id: "square-diagonals", label: "Sq Diags" },
+  { id: "fibonacci-diagonals", label: "Fib Diags" },
 ] as const;
 
 export type GridOverlayId = (typeof GRID_OVERLAY_ITEMS)[number]["id"];
@@ -160,7 +160,12 @@ function fibonacciEdgeFractions(extra = 0): number[] {
 
 function fibonacciMatrix(W: number, H: number): Segment[] {
   const fracs = fibonacciEdgeFractions();
-  const segments: Segment[] = [];
+  // The reference matrix includes a central crosshair, with the mirrored
+  // Fibonacci bands expanding outward from it toward both edges.
+  const segments: Segment[] = [
+    [W / 2, 0, W / 2, H],
+    [0, H / 2, W, H / 2],
+  ];
   for (const f of fracs) {
     segments.push([W * f, 0, W * f, H]);
   }

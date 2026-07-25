@@ -1,19 +1,15 @@
 "use client";
 
 import { useApplyFocus, useFocus } from "@/lib/focus-context";
-import Button from "@/components/_shared/Button";
 import Slider, { SliderInput } from "@/components/_shared/Slider";
 import Switch from "@/components/_shared/Switch";
-import { GridIcon } from "@/components/camera-controls/control-tab-icons";
 
 export default function FocusControls({
   peaking = true,
   onPeakingChange,
-  onOpenGridPicker,
 }: {
   peaking?: boolean;
   onPeakingChange?: (next: boolean) => void;
-  onOpenGridPicker?: () => void;
 }) {
   const focus = useFocus();
   const applyFocus = useApplyFocus();
@@ -86,26 +82,14 @@ export default function FocusControls({
             the middle of the focus column rather than beside the slider.
             Label included in the hit target — see SettingToggle. */}
         {onPeakingChange && (
-          <div className="absolute top-1/2 left-1/2 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-4">
-            <div
-              onClick={() => onPeakingChange(!peaking)}
-              className="flex cursor-pointer flex-col items-center gap-2"
-            >
-              <span className="font-mono text-xs leading-none font-semibold text-stone-500">
-                Focus Peaking
-              </span>
-              <Switch checked={peaking} onChange={onPeakingChange} />
-            </div>
-            {onOpenGridPicker && (
-              <Button
-                variant="secondary"
-                onClick={onOpenGridPicker}
-                className="flex items-center justify-center gap-2"
-              >
-                <GridIcon />
-                <span className="translate-y-px">Grid</span>
-              </Button>
-            )}
+          <div
+            onClick={() => onPeakingChange(!peaking)}
+            className="absolute top-1/2 left-1/2 flex -translate-x-1/2 -translate-y-1/2 cursor-pointer flex-col items-center gap-2"
+          >
+            <span className="font-mono text-xs leading-none font-semibold text-stone-500">
+              Focus Peaking
+            </span>
+            <Switch checked={peaking} onChange={onPeakingChange} />
           </div>
         )}
       </div>

@@ -11,16 +11,13 @@ type ButtonGroupProps<T extends string> = {
   items: readonly ButtonGroupItem<T>[];
   active: T;
   onChange: (id: T) => void;
-  // When set, the group wraps into rows of this many buttons instead of a
-  // single row. Each button's basis is a clean 1/columns of the width (minus
-  // the gaps), so the rows stay aligned; grow soaks up sub-pixel rounding.
+  // When set, lay out as a CSS grid with this many equal columns instead of
+  // a single flex row. minmax(0, 1fr) lets long labels truncate instead of
+  // blowing the column count.
   columns?: number;
   // Extra classes applied to every button (e.g. a shared height with Capture).
   buttonClassName?: string;
 };
-
-// gap-2 between buttons, in rem — used to compute the wrapped basis.
-const GAP_REM = 0.5;
 
 export default function ButtonGroup<T extends string>({
   items,
@@ -30,21 +27,22 @@ export default function ButtonGroup<T extends string>({
   buttonClassName,
 }: ButtonGroupProps<T>) {
   const wrap = columns != null;
-  const basis = wrap
-    ? `calc((100% - ${(columns - 1) * GAP_REM}rem) / ${columns})`
-    : undefined;
   return (
     <div
-      className={`flex w-full gap-2 text-xs select-none ${wrap ? "flex-wrap" : ""}`}
+      className={
+        wrap
+          ? "grid w-full gap-2 text-xs select-none"
+          : "flex w-full gap-2 text-xs select-none"
+      }
+      style={wrap ? { gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` } : undefined}
     >
       {items.map((item) => (
         <button
           key={item.id}
           type="button"
           onClick={() => onChange(item.id)}
-          style={basis ? { flexBasis: basis } : undefined}
           className={[
-            `${wrap ? "grow" : "flex-1"} flex items-center justify-center gap-1.5 rounded-md border border-stone-300 px-4 py-2 text-xs font-semibold transition-all`,
+            `${wrap ? "min-w-0" : "flex-1"} flex items-center justify-center gap-1.5 rounded-md border border-stone-300 px-3 py-2 text-xs font-semibold transition-all`,
             active === item.id
               ? "bg-stone-50 text-orange-500 shadow-[0_0_2px_rgb(0_0_0_/_0.08)]"
               : "bg-stone-100 text-stone-400 shadow-[0_0_4px_rgb(0_0_0_/_0.16)]",
@@ -56,7 +54,11 @@ export default function ButtonGroup<T extends string>({
           {item.icon}
           {/* The descenderless labels sit ~1px high in their line box; nudge
               down so they read centred (matches the Button component). */}
-          <span className="min-w-0 translate-y-px truncate">{item.label}</span>
+          <span
+            className={`min-w-0 translate-y-px ${wrap ? "text-center leading-tight text-balance" : "truncate"}`}
+          >
+            {item.label}
+          </span>
         </button>
       ))}
     </div>
