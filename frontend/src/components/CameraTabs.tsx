@@ -80,7 +80,7 @@ export default function CameraTabs() {
                   showFocusPeaking={focusPeaking}
                 />
               </div>
-              <div className="shrink-0">
+              <div className="mb-4 shrink-0">
                 <ButtonGroup
                   items={CONTROL_TABS}
                   active={controlPanel}

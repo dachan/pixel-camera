@@ -30,7 +30,6 @@ export default function GridPicker({
             orientation="horizontal"
             label="Grid"
             value={`${Math.round(gridOpacity * 100)}%`}
-            lockable={false}
           >
             <SliderInput
               orientation="horizontal"
