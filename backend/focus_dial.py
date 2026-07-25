@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 DEFAULT_CLK_PIN = 23
 DEFAULT_DT_PIN = 24
 DEFAULT_SWITCH_PIN = 25
-DEFAULT_STEP = 0.1
+DEFAULT_STEP = 0.5
 
 # Valid one-bit quadrature transitions. The sign convention can be flipped
 # without editing code when a particular encoder's clockwise direction differs.
