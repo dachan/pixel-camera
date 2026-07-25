@@ -22,7 +22,8 @@ Designed for:
 - Raspberry Pi 5 (Bookworm 64-bit, Wayland / labwc)
 - Camera module (including NoIR, with colour-tuning support)
 - Touchscreen display
-- Optional: physical shutter button on GPIO, Geekworm X120x-class UPS for battery readout
+- Optional: physical shutter button on GPIO, Geekworm X120x-class UPS for battery readout,
+  and a rotary focus dial (CLK GPIO23, DT GPIO24, switch GPIO25)
 
 Develop on a Mac with a mock camera — no Pi required until you’re ready to deploy.
 

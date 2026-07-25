@@ -188,8 +188,11 @@ def do_capture() -> dict:
 
 
 if os.environ.get("CAMERA") == "real":
+    from focus_dial import start_focus_dial
     from shutter_button import start_shutter_button
 
     # Held at module scope: lgpio does not keep the callback alive on its own,
     # and a locally-scoped one would be garbage-collected almost immediately.
     _shutter_button = start_shutter_button(do_capture)
+    # The rotary encoder's callbacks need the same lifetime guarantee.
+    _focus_dial = start_focus_dial(camera)
