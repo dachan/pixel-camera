@@ -22,8 +22,6 @@ import SettingToggle from "@/components/SettingToggle";
 import Button from "@/components/_shared/Button";
 import ButtonGroup from "@/components/_shared/ButtonGroup";
 import Slider, { SliderInput } from "@/components/_shared/Slider";
-import GridPicker from "@/components/camera-controls/GridPicker";
-import type { GridOverlayId } from "@/lib/grid-overlays";
 
 // Capture rotations offered in the UI (degrees clockwise).
 const ROTATION_ITEMS = [
@@ -57,17 +55,9 @@ function formatAgo(unixSeconds: number): string {
 export default function CameraSettings({
   showCaptureButton,
   onCaptureButtonChange,
-  gridType,
-  onGridTypeChange,
-  gridOpacity,
-  onGridOpacityChange,
 }: {
   showCaptureButton: boolean;
   onCaptureButtonChange: (next: boolean) => void;
-  gridType: GridOverlayId;
-  onGridTypeChange: (next: GridOverlayId) => void;
-  gridOpacity: number;
-  onGridOpacityChange: (next: number) => void;
 }) {
   const [rotation, setRotation] = useState<number | null>(null);
   const [quality, setQuality] = useState<number | null>(null);
@@ -263,21 +253,6 @@ export default function CameraSettings({
           checked={showCaptureButton}
           onChange={onCaptureButtonChange}
         />
-
-        <section className="flex flex-col gap-3">
-          <div className="flex flex-col gap-1">
-            <h2 className="text-sm font-semibold text-stone-700">Grid</h2>
-            <p className="text-xs text-stone-500">
-              Composition overlay shown on the live Camera preview.
-            </p>
-          </div>
-          <GridPicker
-            gridType={gridType}
-            onGridTypeChange={onGridTypeChange}
-            gridOpacity={gridOpacity}
-            onGridOpacityChange={onGridOpacityChange}
-          />
-        </section>
 
         <section className="flex flex-col gap-3">
           <div className="flex flex-col gap-1">
