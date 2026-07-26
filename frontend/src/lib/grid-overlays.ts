@@ -10,7 +10,6 @@ export const GRID_OVERLAY_ITEMS = [
   { id: "harmonic-armature", label: "Harmonic" },
   { id: "golden-triangle", label: "Triangle" },
   { id: "fibonacci-spiral", label: "Spiral" },
-  { id: "dynamic-sqrt2", label: "Dynamic" },
   { id: "vanishing-point", label: "Vanishing" },
   { id: "fibonacci-matrix", label: "Matrix" },
   { id: "square-diagonals", label: "Sq Diags" },
@@ -104,26 +103,6 @@ function goldenTriangle(W: number, H: number): Segment[] {
     [0, 0, ...foot1],
     [W, H, ...foot2],
   ];
-}
-
-function dynamicSymmetry(W: number, H: number, n: number): Segment[] {
-  // Root-N rectangle: N equal columns (the reciprocals), with the whole
-  // rectangle's two diagonals plus both diagonals of every column. The
-  // crossings of those diagonals are the dynamic-symmetry "eyes".
-  const colW = W / n;
-  const segments: Segment[] = [
-    [0, 0, W, H],
-    [W, 0, 0, H],
-    [0, H / 2, W, H / 2],
-  ];
-  for (let i = 0; i < n; i++) {
-    const x0 = i * colW;
-    const x1 = (i + 1) * colW;
-    segments.push([x0, 0, x1, H]);
-    segments.push([x1, 0, x0, H]);
-    if (i > 0) segments.push([x0, 0, x0, H]);
-  }
-  return segments;
 }
 
 function vanishingPoint(W: number, H: number): Segment[] {
@@ -330,8 +309,6 @@ export function computeGridOverlay(
       const { rects, arcs } = fibonacciSpiral(W, H);
       return { segments: [], rects, arcs };
     }
-    case "dynamic-sqrt2":
-      return { segments: dynamicSymmetry(W, H, 2) };
     case "vanishing-point":
       return { segments: vanishingPoint(W, H) };
     case "fibonacci-matrix":
