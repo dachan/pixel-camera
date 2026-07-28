@@ -1,19 +1,20 @@
 # Pixel Camera
 
-A full-screen touchscreen camera for Raspberry Pi. Live preview, manual controls, RAW+JPEG capture, and a gallery — built to boot straight into a kiosk on a Pi 5.
+A full-screen touchscreen camera for Raspberry Pi. Live preview, manual controls, RAW+JPEG capture, and a gallery — built to boot straight into a kiosk on a Pi 5 with an **800×480** display.
 
-![Pixel Camera UI](marketing/assets/pixel-ui-1.png)
+![Pixel Camera UI (800×480)](marketing/assets/pixel-ui-1.png)
 
 ## What you get
 
-- **Live viewfinder** — tap to focus, optional rule-of-thirds grid, rotate the sensor to match your mount
+- **Live viewfinder** — tap to focus, composition grids with adjustable opacity, rotate the sensor to match your mount
 - **Exposure** — auto, or lock in ISO and shutter yourself
-- **Focus** — continuous autofocus or manual lens control with focus peaking
+- **Focus** — continuous autofocus or manual lens control, with an on/off focus-peaking overlay
 - **White balance** — auto, presets (daylight, cloudy, tungsten…), or manual temperature and tint
+- **Grid** — thirds, Fibonacci, harmonic, golden triangle/spiral, vanishing point, and more
 - **Capture** — JPEG, RAW (DNG), or both; on-screen shutter or an optional physical GPIO button
 - **Gallery** — browse thumbnails, open full-screen, clear everything when you’re done
 - **Status at a glance** — time, battery, and temperature in the header
-- **Built for the Pi** — boots into the app, stays cool under load, and can exit to the desktop when you need it
+- **Built for the Pi** — boots into the app at 800×480, stays cool under load, and can exit to the desktop when you need it
 
 ## Hardware
 
@@ -21,7 +22,7 @@ Designed for:
 
 - Raspberry Pi 5 (Bookworm 64-bit, Wayland / labwc)
 - Camera module (including NoIR, with colour-tuning support)
-- Touchscreen display
+- **800×480** touchscreen display
 - Optional: physical shutter button on GPIO, Geekworm X120x-class UPS for battery readout,
   and a rotary focus dial (CLK GPIO23, DT GPIO24, switch GPIO25)
 
@@ -31,12 +32,12 @@ Develop on a Mac with a mock camera — no Pi required until you’re ready to d
 
 | Tab | What it’s for |
 | --- | --- |
-| **Camera** | Live preview and exposure / focus / white-balance controls |
+| **Camera** | Live preview plus Exposure / Focus / White Balance / Grid controls |
 | **Meta** | Live sensor readouts and control ranges |
 | **Gallery** | Review and delete captures |
-| **Settings** | Grid, capture button, rotation, quality, format, thermal throttle, exit kiosk |
+| **Settings** | Capture button, rotation, quality, format, thermal throttle, exit kiosk |
 
-Tap the preview to focus. Use **Capture** (or the GPIO shutter) to save. Photos land in `captures/` on the device.
+On the Camera tab, the control strip under the viewfinder switches the side panel. Tap the preview to focus. Use **Capture** (or the GPIO shutter) to save. Photos land in `captures/` on the device.
 
 ## Quick start (Mac)
 

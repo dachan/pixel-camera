@@ -51,15 +51,15 @@ export default function Switch({
       {!checked && (
         <span
           aria-hidden
-          className="pointer-events-none absolute top-1/2 left-1/2 z-[1] h-[60%] w-px -translate-x-1/2 -translate-y-1/2 bg-stone-300"
+          className="pointer-events-none absolute top-1/2 left-1/2 z-1 h-[60%] w-px -translate-x-1/2 -translate-y-1/2 bg-stone-300"
         />
       )}
       <span
         aria-hidden
-        className="pointer-events-none absolute inset-0 z-[5] rounded-[5px] shadow-[inset_0_0_4px_rgb(0_0_0_/_0.2)]"
+        className="pointer-events-none absolute inset-0 z-5 rounded-[5px] shadow-[inset_0_0_4px_rgb(0_0_0/0.2)]"
       />
       <span
-        className={`absolute top-1/2 z-10 size-3 -translate-x-1/2 -translate-y-1/2 rounded-full shadow-[0_0_2px_rgb(0_0_0_/_0.2)] transition-all ${
+        className={`absolute top-1/2 z-10 size-3 -translate-x-1/2 -translate-y-1/2 rounded-full shadow-[0_0_2px_rgb(0_0_0/0.2)] transition-all ${
           checked ? "left-3/4 bg-orange-500" : "left-1/4 bg-stone-300"
         }`}
       />
