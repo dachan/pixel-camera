@@ -69,7 +69,9 @@ export default function CameraControls({
   }
 
   return (
-    <section className="flex h-full w-full flex-col gap-8">
+    <section
+      className={`flex h-full w-full flex-col gap-8 ${showCaptureButton ? "" : "pb-4"}`}
+    >
       <div className="min-h-0 flex-1">
         {panel === "exposure" ? (
           <ExposureControls />
